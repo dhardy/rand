@@ -14,6 +14,7 @@ use core::slice;
 use core::iter::repeat;
 use core::num::Wrapping as w;
 use core::fmt;
+use core::cmp::min;
 
 use {Rng, SeedFromRng, SeedableRng, Error};
 
@@ -87,7 +88,7 @@ const RAND_SIZE: usize = 1 << RAND_SIZE_LEN;
 /// [3]: Jean-Philippe Aumasson, [*On the pseudo-random generator ISAAC*]
 ///      (http://eprint.iacr.org/2006/438)
 pub struct IsaacRng {
-    rsl: [w32; RAND_SIZE],
+    rsl: [u32; RAND_SIZE],
     mem: [w32; RAND_SIZE],
     a: w32,
     b: w32,
@@ -175,7 +176,7 @@ impl IsaacRng {
             let y = *a + *b + ind(&ctx.mem, x, 2);
             ctx.mem[base + m] = y;
             *b = x + ind(&ctx.mem, y, 2 + RAND_SIZE_LEN);
-            ctx.rsl[base + m] = *b;
+            ctx.rsl[base + m] = (*b).0;
         }
 
         let mut m = 0;
@@ -200,12 +201,42 @@ impl IsaacRng {
         self.b = b;
         self.cnt = RAND_SIZE as u32;
     }
+
+    fn fill_chunk(&mut self, dest: &mut [u8]) -> usize {
+        if self.cnt < 1 {
+            self.isaac();
+        }
+
+        let mut index_u32 = self.cnt as usize;
+        let available = index_u32 * 4;
+        let chunk_size_u8 = min(available, dest.len());
+        let chunk_size_u32 = (chunk_size_u8 + 3) / 4;
+
+        index_u32 -= chunk_size_u32;
+        let index_u8 = index_u32 * 4;
+
+        // convert to LE:
+        if cfg!(target_endian = "big") {
+            for ref mut x in self.rsl[index_u32..(index_u32 + chunk_size_u32)].iter_mut() {
+                **x = (*x).to_le();
+            }
+        }
+
+        let rsl = unsafe { &*(&mut self.rsl as *mut [u32; RAND_SIZE]
+                                            as *mut [u8; RAND_SIZE * 4]) };
+
+        let copy = &mut dest[0..chunk_size_u8];
+        copy.copy_from_slice(&rsl[index_u8..(index_u8 + chunk_size_u8)]);
+
+        self.cnt = index_u32 as u32;
+        chunk_size_u8
+    }
 }
 
 impl Rng for IsaacRng {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        if self.cnt == 0 {
+        if self.cnt < 1 {
             // make some more numbers
             self.isaac();
         }
@@ -222,7 +253,7 @@ impl Rng for IsaacRng {
         // (the % is cheaply telling the optimiser that we're always
         // in bounds, without unsafe. NB. this is a power of two, so
         // it optimises to a bitwise mask).
-        self.rsl[self.cnt as usize % RAND_SIZE].0
+        self.rsl[self.cnt as usize % RAND_SIZE]
     }
 
     fn next_u64(&mut self) -> u64 {
@@ -235,7 +266,11 @@ impl Rng for IsaacRng {
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        ::rand_core::impls::fill_bytes_via_u32(self, dest);
+        let mut read_len = 0;
+        while read_len < dest.len() {
+            let chunk_len = self.fill_chunk(&mut dest[read_len..]);
+            read_len += chunk_len;
+        }
     }
 
     fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
@@ -300,7 +335,7 @@ fn init(mut mem: [w32; RAND_SIZE], rounds: u32) -> IsaacRng {
     }
 
     let mut rng = IsaacRng {
-        rsl: [w(0); RAND_SIZE],
+        rsl: [0; RAND_SIZE],
         mem: mem,
         a: w(0),
         b: w(0),
