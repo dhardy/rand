@@ -132,6 +132,12 @@ impl Isaac64Rng {
     /// - We maintain one index `i` and add `m` or `m2` as base (m2 for the
     ///   `s[i+128 mod 256]`), relying on the optimizer to turn it into pointer
     ///   arithmetic.
+    /// - In `cnt` we do not store the number of available u64's, but fake it as
+    ///   the number of available u32 (e.g. multiply `cnt` by 2). This way we
+    ///   can make more efficient use of the generated results in `next_u32`.
+    ///   For `next_u64` the correct index is `cnt >> 1`, which also takes care
+    ///   of any alignment issues that could arise if `next_u64` was called
+    ///   after `next_u32`.
     fn isaac64(&mut self) {
         self.c += w(1);
         // abbreviations
@@ -181,36 +187,45 @@ impl Isaac64Rng {
 
         self.a = a;
         self.b = b;
-        self.cnt = RAND_SIZE as u32;
+        self.cnt = (RAND_SIZE * 2) as u32;
     }
 }
 
 impl Rng for Isaac64Rng {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        self.next_u64() as u32
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
         if self.cnt == 0 {
             // make some more numbers
             self.isaac64();
         }
         self.cnt -= 1;
 
-        // self.cnt is at most RAND_SIZE, but that is before the
+        let rsl = unsafe { &*(&mut self.rsl as *mut [w64; RAND_SIZE]
+                                            as *mut [u32; RAND_SIZE * 2]) };
+
+        rsl[self.cnt as usize % (RAND_SIZE * 2)]
+    }
+
+    #[inline]
+    fn next_u64(&mut self) -> u64 {
+        if self.cnt < 2 {
+            // make some more numbers
+            self.isaac64();
+        }
+        self.cnt -= 2;
+
+        // self.cnt is at most RAND_SIZE * 2, but that is before the
         // subtraction above. We want to index without bounds
         // checking, but this could lead to incorrect code if someone
         // misrefactors, so we check, sometimes.
         //
         // (Changes here should be reflected in IsaacRng.next_u32.)
-        debug_assert!((self.cnt as usize) < RAND_SIZE);
+        debug_assert!(((self.cnt >> 1) as usize) < RAND_SIZE);
 
         // (the % is cheaply telling the optimiser that we're always
         // in bounds, without unsafe. NB. this is a power of two, so
         // it optimises to a bitwise mask).
-        self.rsl[self.cnt as usize % RAND_SIZE].0
+        self.rsl[(self.cnt >> 1) as usize % RAND_SIZE].0
     }
 
     #[cfg(feature = "i128_support")]
@@ -219,7 +234,7 @@ impl Rng for Isaac64Rng {
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        ::rand_core::impls::fill_bytes_via_u32(self, dest);
+        ::rand_core::impls::fill_bytes_via_u64(self, dest);
     }
 
     fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
