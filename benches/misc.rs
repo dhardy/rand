@@ -10,7 +10,7 @@ use rand::sequences::{sample, Shuffle};
 
 #[bench]
 fn misc_shuffle_100(b: &mut Bencher) {
-    let mut rng = XorShiftRng::new().unwrap();
+    let mut rng = XorShiftRng::try_new().unwrap();
     let x : &mut [usize] = &mut [1; 100];
     b.iter(|| {
         x.shuffle(&mut rng);
@@ -20,7 +20,7 @@ fn misc_shuffle_100(b: &mut Bencher) {
 
 #[bench]
 fn misc_sample_10_of_100(b: &mut Bencher) {
-    let mut rng = XorShiftRng::new().unwrap();
+    let mut rng = XorShiftRng::try_new().unwrap();
     let x : &[usize] = &[1; 100];
     b.iter(|| {
         black_box(sample(&mut rng, x, 10));

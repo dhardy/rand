@@ -15,7 +15,7 @@ use rand::distributions::*;
 
 #[bench]
 fn distr_baseline(b: &mut Bencher) {
-    let mut rng = XorShiftRng::new().unwrap();
+    let mut rng = XorShiftRng::try_new().unwrap();
 
     b.iter(|| {
         for _ in 0..::RAND_BENCH_N {
@@ -29,7 +29,7 @@ macro_rules! distr_range_int {
     ($fnn:ident, $ty:ty, $low:expr, $high:expr) => {
         #[bench]
         fn $fnn(b: &mut Bencher) {
-            let mut rng = XorShiftRng::new().unwrap();
+            let mut rng = XorShiftRng::try_new().unwrap();
             let distr = Range::new($low, $high);
 
             b.iter(|| {
@@ -52,7 +52,7 @@ macro_rules! distr_float {
     ($fnn:ident, $distr:expr) => {
         #[bench]
         fn $fnn(b: &mut Bencher) {
-            let mut rng = XorShiftRng::new().unwrap();
+            let mut rng = XorShiftRng::try_new().unwrap();
             let distr = $distr;
 
             b.iter(|| {

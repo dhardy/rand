@@ -47,8 +47,8 @@ impl fmt::Debug for OsRng {
 
 impl OsRng {
     /// Create a new `OsRng`.
-    pub fn new() -> Result<OsRng, Error> {
-        imp::OsRng::new().map(OsRng)
+    pub fn try_new() -> Result<OsRng, Error> {
+        imp::OsRng::try_new().map(OsRng)
     }
 }
 
@@ -211,7 +211,7 @@ mod imp {
     }
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             if is_getrandom_available() {
                 return Ok(OsRng { inner: OsGetrandomRng });
             }
@@ -253,7 +253,7 @@ mod imp {
     }
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
         pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
@@ -278,7 +278,7 @@ mod imp {
     pub struct OsRng;
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
         pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
@@ -311,7 +311,7 @@ mod imp {
     pub struct OsRng;
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
         pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
@@ -342,7 +342,7 @@ mod imp {
     }
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             let reader = File::open("rand:").unwrap();
             let reader_rng = ReadRng(reader);
 
@@ -364,7 +364,7 @@ mod imp {
     pub struct OsRng;
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
         pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
@@ -399,7 +399,7 @@ mod imp {
     pub struct OsRng;
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
         pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
@@ -447,7 +447,7 @@ mod imp {
     }
 
     impl OsRng {
-        pub fn new() -> Result<OsRng, Error> {
+        pub fn try_new() -> Result<OsRng, Error> {
             let mut iface = NaClIRTRandom {
                 get_random_bytes: None,
             };
@@ -494,7 +494,7 @@ mod test {
 
     #[test]
     fn test_os_rng() {
-        let mut r = OsRng::new().unwrap();
+        let mut r = OsRng::try_new().unwrap();
 
         r.next_u32();
         r.next_u64();
@@ -517,7 +517,7 @@ mod test {
 
                 // deschedule to attempt to interleave things as much
                 // as possible (XXX: is this a good test?)
-                let mut r = OsRng::new().unwrap();
+                let mut r = OsRng::try_new().unwrap();
                 thread::yield_now();
                 let mut v = [0u8; 1000];
 

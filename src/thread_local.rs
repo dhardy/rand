@@ -51,7 +51,8 @@ impl Rng for ThreadRng {
 
 thread_local!(
     static THREAD_RNG_KEY: Rc<RefCell<ReseedingStdRng>> = {
-        let r = match StdRng::new() {
+        // TODO: consider using new_with_fallback instead of try_new
+        let r = match StdRng::try_new() {
             Ok(r) => r,
             Err(e) => panic!("could not initialize thread_rng: {:?}", e)
         };

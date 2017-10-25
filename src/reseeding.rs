@@ -122,7 +122,8 @@ pub struct ReseedWithNew;
 #[cfg(feature="std")]
 impl<R: Rng + NewSeeded> Reseeder<R> for ReseedWithNew {
     fn reseed(&mut self, rng: &mut R) {
-        match R::new() {
+        // TODO: should we use new_with_fallback instead?
+        match R::try_new() {
             Ok(result) => *rng = result,
             // TODO: should we ignore and continue without reseeding?
             Err(e) => panic!("Reseeding failed: {:?}", e),
