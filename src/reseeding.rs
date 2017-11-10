@@ -63,10 +63,11 @@ impl<R: Rng, Rsdr: Reseeder<R>> ReseedingRng<R, Rsdr> {
         let mut err_count = 0;
         loop {
             if let Err(e) = self.reseeder.reseed(&mut self.rng) {
-                // TODO: log?
                 if e.kind().should_wait() {
                     // Delay reseeding
                     self.bytes_until_reseed = self.threshold >> 8;
+                    warn!("Error while reseeding: {}; delayed for {} bytes",
+                            e, self.bytes_until_reseed);
                 } else if e.kind().should_retry() {
                     err_count += 1;
                     if err_count <= 5 { // arbitrary limit
@@ -74,6 +75,9 @@ impl<R: Rng, Rsdr: Reseeder<R>> ReseedingRng<R, Rsdr> {
                     }
                 }
                 // give up trying to reseed
+                error!("Error while reseeding: {}; failed to reseed", e);
+            } else {
+                trace!("Successfully reseeded");
             }
             break; // successfully reseeded, delayed, or given up.
         }

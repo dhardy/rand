@@ -36,6 +36,16 @@ support.
 Version `0.5` is in development and contains significant performance
 improvements for the ISAAC random number generators.
 
+### Optional features
+
+The `rand` crate has some optional features:
+
+*   `--no-default-features` (otherwise known as `no_std`): build without `std`;
+    several features must be disabled including default entropy sources
+*   `nightly`: enables all nightly features (`i128_support`)
+*   `i128_support` (requires nightly rustc): add support for `i128` and `u128`
+*   `log`: do some logging via the `log` crate
+
 ## Examples
 
 There is built-in support for a random number generator (RNG) associated with

@@ -254,6 +254,11 @@
 #[cfg(feature="std")] extern crate std as core;
 #[cfg(all(feature = "alloc", not(feature="std")))] extern crate alloc;
 
+#[cfg(feature = "log")] #[macro_use] extern crate log;
+#[cfg(not(feature = "log"))] macro_rules! trace { ($($x:tt)*) => () }
+#[cfg(not(feature = "log"))] macro_rules! warn { ($($x:tt)*) => () }
+#[cfg(not(feature = "log"))] macro_rules! error { ($($x:tt)*) => () }
+
 extern crate rand_core;
 
 // core traits and types
@@ -313,6 +318,15 @@ mod read;
 mod thread_local;
 
 
+#[cfg(feature="std")]
+fn log_cause(mut e: &::std::error::Error) {
+    while let Some(cause) = e.cause() {
+        warn!("cause: {}", cause);
+        e = cause;
+    }
+}
+
+
 /// Seeding mechanism for PRNGs, providing a `new` function.
 /// This is the recommended way to create (pseudo) random number generators,
 /// unless a deterministic seed is desired (in which case
@@ -353,8 +367,11 @@ impl<R: SeedableRng> NewSeeded for R {
         }
         
         new_os().or_else(|e1| {
-            new_jitter().map_err(|_e2| {
-                // TODO: log
+            warn!("OsRng failed: {}; falling back to JitterRng", e1);
+            log_cause(&e1);
+            new_jitter().map_err(|e2| {
+                error!("JitterRng failed: {}", e2);
+                log_cause(&e2);
                 // TODO: can we somehow return both error sources?
                 Error::with_cause(
                     ErrorKind::Unavailable,
