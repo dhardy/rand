@@ -12,6 +12,7 @@
 
 use core::num::Wrapping as w;
 use core::fmt;
+use core::cmp::min;
 use {Rng, CryptoRng, SeedFromRng, SeedableRng, Error};
 
 #[allow(bad_style)]
@@ -34,7 +35,7 @@ const CHACHA_ROUNDS: u32 = 20; // Cryptographically secure from 8 upwards as of 
 pub struct ChaChaRng {
     buffer:  [w32; STATE_WORDS], // Internal buffer of output
     state:   [w32; STATE_WORDS], // Initial state
-    index:   usize,                 // Index into state
+    index:   usize,              // Index into state
 }
 
 // Custom Debug implementation that does not expose the internal state
@@ -189,6 +190,31 @@ impl ChaChaRng {
         if self.state[14] != w(0) { return };
         self.state[15] = self.state[15] + w(1);
     }
+
+    fn fill_chunk(&mut self, dest: &mut [u8]) -> usize {
+        if self.index == STATE_WORDS {
+            self.update();
+        }
+
+        let available = (STATE_WORDS - self.index) * 4;
+        let chunk_size_u8 = min(available, dest.len());
+        let chunk_size_u32 = (chunk_size_u8 + 3) / 4;
+
+        // convert to LE:
+        for ref mut x in self.buffer[self.index..self.index+chunk_size_u32].iter_mut() {
+            **x = w((*x).0.to_le());
+        }
+
+        let buf = unsafe { &*(&mut self.buffer as *mut [w32; STATE_WORDS]
+                                               as *mut [u8; STATE_WORDS * 4]) };
+
+        let index = self.index * 4;
+        let copy = &mut dest[0..chunk_size_u8];
+        copy.copy_from_slice(&buf[index..index+chunk_size_u8]);
+
+        self.index += chunk_size_u32;
+        chunk_size_u8
+    }
 }
 
 impl Rng for ChaChaRng {
@@ -211,39 +237,11 @@ impl Rng for ChaChaRng {
         ::rand_core::impls::next_u128_via_u64(self)
     }
     
-    // Custom implementation allowing larger reads from buffer is about 8%
-    // faster than default implementation in my tests
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        use core::cmp::min;
-        use core::intrinsics::{transmute, copy_nonoverlapping};
-        
-        let mut left = dest;
-        while left.len() >= 4 {
-            if self.index == STATE_WORDS {
-                self.update();
-            }
-            
-            let words = min(left.len() / 4, STATE_WORDS - self.index);
-            let (l, r) = {left}.split_at_mut(4 * words);
-            left = r;
-            
-            // convert to LE:
-            for ref mut x in self.buffer[self.index..self.index+words].iter_mut() {
-                **x = w((*x).0.to_le());
-            }
-            
-            unsafe{ copy_nonoverlapping(
-                &self.buffer[self.index].0 as *const u32 as *const u8,
-                l.as_mut_ptr(),
-                words) };
-            self.index += words;
-        }
-        let n = left.len();
-        if n > 0 {
-            let chunk: [u8; 4] = unsafe {
-                transmute(self.next_u32().to_le())
-            };
-            left.copy_from_slice(&chunk[..n]);
+        let mut read_len = 0;
+        while read_len < dest.len() {
+            let chunk_len = self.fill_chunk(&mut dest[read_len..]);
+            read_len += chunk_len;
         }
     }
 
