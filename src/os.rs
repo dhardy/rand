@@ -12,9 +12,8 @@
 //! generators.
 
 use std::fmt;
-use std::io::Read;
 
-use {Rng, Error, ErrorKind};
+use {Rng, Error};
 // TODO: replace many of the panics below with Result error handling
 
 /// A random number generator that retrieves randomness straight from
@@ -71,22 +70,8 @@ impl Rng for OsRng {
         self.try_fill(dest).unwrap();
     }
 
-    fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
-        self.0.try_fill(v)
-    }
-}
-
-// Specialisation of `ReadRng` for our purposes
-#[derive(Debug)]
-struct ReadRng<R> (R);
-
-impl<R: Read> ReadRng<R> {
     fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        if dest.len() == 0 { return Ok(()); }
-        // Use `std::io::read_exact`, which retries on `ErrorKind::Interrupted`.
-        self.0.read_exact(dest).map_err(|err| {
-            Error::new_with_cause(ErrorKind::Unavailable, "error reading random device", err)
-        })
+        self.0.try_fill(dest)
     }
 }
 
@@ -98,12 +83,10 @@ impl<R: Read> ReadRng<R> {
           not(target_os = "redox")))]
 mod imp {
     extern crate libc;
-
-    use self::OsRngInner::*;
-    use super::ReadRng;
     use {Error, ErrorKind};
 
     use std::io;
+    use std::io::Read;
     use std::fs::File;
 
     #[cfg(all(target_os = "linux",
@@ -141,11 +124,11 @@ mod imp {
                       target_arch = "powerpc"))))]
     fn getrandom(_buf: &mut [u8]) -> libc::c_long { -1 }
 
-    fn getrandom_try_fill(v: &mut [u8]) -> Result<(), Error> {
+    fn getrandom_try_fill(dest: &mut [u8]) -> Result<(), Error> {
         let mut read = 0;
-        let len = v.len();
+        let len = dest.len();
         while read < len {
-            let result = getrandom(&mut v[read..]);
+            let result = getrandom(&mut dest[read..]);
             if result == -1 {
                 let err = io::Error::last_os_error();
                 if err.kind() == io::ErrorKind::Interrupted {
@@ -202,33 +185,38 @@ mod imp {
 
     #[derive(Debug)]
     pub struct OsRng {
-        inner: OsRngInner,
+        inner: OsRngMethod,
     }
 
     #[derive(Debug)]
-    enum OsRngInner {
-        OsGetrandomRng,
-        OsReadRng(ReadRng<File>),
+    enum OsRngMethod {
+        GetRandom,
+        RandomDevice(File),
     }
 
     impl OsRng {
         pub fn new() -> Result<OsRng, Error> {
             if is_getrandom_available() {
-                return Ok(OsRng { inner: OsGetrandomRng });
+                return Ok(OsRng { inner: OsRngMethod::GetRandom });
             }
 
-            let reader = File::open("/dev/urandom").map_err(|err| {
+            let dev_random = File::open("/dev/urandom").map_err(|err| {
                 Error::new_with_cause(ErrorKind::Unavailable, "error opening random device", err)
             })?;
-            let reader_rng = ReadRng(reader);
-
-            Ok(OsRng { inner: OsReadRng(reader_rng) })
+            Ok(OsRng { inner: OsRngMethod::RandomDevice(dev_random) })
         }
         
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
             match self.inner {
-                OsGetrandomRng => getrandom_try_fill(v),
-                OsReadRng(ref mut rng) => rng.try_fill(v)
+                OsRngMethod::GetRandom => getrandom_try_fill(dest),
+                OsRngMethod::RandomDevice(ref mut dev_random) => {
+                    // The only documented error that we can encounter is EINTR,
+                    // which is handled by `read_exact`.
+                    dev_random.read_exact(dest).map_err(|err| {
+                        Error::new_with_cause(ErrorKind::Other,
+                                              "error reading random device",
+                                              err) })
+                }
             }
         }
     }
@@ -261,9 +249,9 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
             let ret = unsafe {
-                SecRandomCopyBytes(kSecRandomDefault, v.len() as size_t, v.as_mut_ptr())
+                SecRandomCopyBytes(kSecRandomDefault, dest.len() as size_t, dest.as_mut_ptr())
             };
             if ret == -1 {
                 Err(Error::new_with_cause(
@@ -292,10 +280,10 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
             let mib = [libc::CTL_KERN, libc::KERN_ARND];
             // kern.arandom permits a maximum buffer size of 256 bytes
-            for s in v.chunks_mut(256) {
+            for s in dest.chunks_mut(256) {
                 let mut s_len = s.len();
                 let ret = unsafe {
                     libc::sysctl(mib.as_ptr(), mib.len() as libc::c_uint,
@@ -330,9 +318,9 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
             // getentropy(2) permits a maximum buffer size of 256 bytes
-            for s in v.chunks_mut(256) {
+            for s in dest.chunks_mut(256) {
                 let ret = unsafe {
                     libc::getentropy(s.as_mut_ptr() as *mut libc::c_void, s.len())
                 };
@@ -351,27 +339,29 @@ mod imp {
 #[cfg(target_os = "redox")]
 mod imp {
     use {Error, ErrorKind};
-    
-    use std::io;
+
     use std::fs::File;
-    use super::ReadRng;
+    use std::io::Read;
 
     #[derive(Debug)]
     pub struct OsRng {
-        inner: ReadRng<File>,
+        dev_random: File,
     }
 
     impl OsRng {
         pub fn new() -> Result<OsRng, Error> {
-            let reader = File::open("rand:").map_err(|err| {
+            let dev_random = File::open("rand:").map_err(|err| {
                 Error::new_with_cause(ErrorKind::Unavailable, "error opening random device", err)
             })?;
-            let reader_rng = ReadRng(reader);
-
-            Ok(OsRng { inner: reader_rng })
+            Ok(OsRng { dev_random: dev_random })
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
-            self.inner.try_fill(v)
+
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+            self.dev_random.read_exact(dest).map_err(|err| {
+                Error::new_with_cause(ErrorKind::Other,
+                                      "error reading random device",
+                                      err) })?;
+            Ok(())
         }
     }
 }
@@ -391,8 +381,8 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
-            for s in v.chunks_mut(fuchsia_zircon::ZX_CPRNG_DRAW_MAX_LEN) {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+            for s in dest.chunks_mut(fuchsia_zircon::ZX_CPRNG_DRAW_MAX_LEN) {
                 let mut filled = 0;
                 while filled < s.len() {
                     match fuchsia_zircon::cprng_draw(&mut s[filled..]) {
@@ -433,10 +423,10 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
             // RtlGenRandom takes an ULONG (u32) for the length so we need to
             // split up the buffer.
-            for slice in v.chunks_mut(<ULONG>::max_value() as usize) {
+            for slice in dest.chunks_mut(<ULONG>::max_value() as usize) {
                 let ret = unsafe {
                     SystemFunction036(slice.as_mut_ptr(), slice.len() as ULONG)
                 };
