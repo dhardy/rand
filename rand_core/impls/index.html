@@ -48,7 +48,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/rand_core/impls.rs.html#11-102' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/rand_core/impls.rs.html#11-223' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Helper functions for implementing <code>Rng</code> functions.</p>
 
 <p>For cross-platform reproducibility, these functions all use Little Endian:
@@ -76,17 +76,40 @@ non-reproducible sources (e.g. <code>OsRng</code>) need not bother with it.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
+                           <td><a class="fn" href="fn.fill_via_try_fill.html"
+                                  title='fn rand_core::impls::fill_via_try_fill'>fill_via_try_fill</a></td>
+                           <td class='docblock-short'>
+                                <p>Implement <code>fill_bytes</code> via <code>try_fill</code> with implicit error handling.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.fill_via_u32_chunks.html"
+                                  title='fn rand_core::impls::fill_via_u32_chunks'>fill_via_u32_chunks</a></td>
+                           <td class='docblock-short'>
+                                <p>Implement <code>fill_bytes</code> by reading chunks from the output buffer of a block
+based RNG.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.fill_via_u64_chunks.html"
+                                  title='fn rand_core::impls::fill_via_u64_chunks'>fill_via_u64_chunks</a></td>
+                           <td class='docblock-short'>
+                                <p>Implement <code>fill_bytes</code> by reading chunks from the output buffer of a block
+based RNG.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.next_u32_via_fill.html"
                                   title='fn rand_core::impls::next_u32_via_fill'>next_u32_via_fill</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Implement <code>next_u32</code> via <code>fill_bytes</code>, little-endian order.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.next_u64_via_fill.html"
                                   title='fn rand_core::impls::next_u64_via_fill'>next_u64_via_fill</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Implement <code>next_u64</code> via <code>fill_bytes</code>, little-endian order.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>

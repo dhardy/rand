@@ -165,6 +165,7 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2013 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -230,14 +231,15 @@
     }
 
     <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        <span class="self">self</span>.<span class="ident">try_fill</span>(<span class="ident">dest</span>).<span class="ident">unwrap</span>();
+        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">fill_via_try_fill</span>(<span class="self">self</span>, <span class="ident">dest</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">try_fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="prelude-val">Ok</span>(()); }
         <span class="comment">// Use `std::io::read_exact`, which retries on `ErrorKind::Interrupted`.</span>
-        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="ident">dest</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span>
-            <span class="ident">Error</span>::<span class="ident">new</span>(<span class="ident">ErrorKind</span>::<span class="ident">Unavailable</span>, <span class="string">&quot;ReadRng: read error&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">err</span>)))
+        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="ident">dest</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+            <span class="ident">Error</span>::<span class="ident">new_with_cause</span>(<span class="ident">ErrorKind</span>::<span class="ident">Unavailable</span>, <span class="string">&quot;ReadRng: read error&quot;</span>, <span class="ident">err</span>)
+        })
     }
 }
 

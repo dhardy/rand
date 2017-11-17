@@ -599,6 +599,8 @@
 <span id="554">554</span>
 <span id="555">555</span>
 <span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -863,6 +865,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">read</span>::<span class="ident">ReadRng</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">os</span>::<span class="ident">OsRng</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jitter_rng</span>::<span class="ident">JitterRng</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iter</span>::<span class="ident">iter</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Default</span>, <span class="ident">Rand</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
@@ -873,6 +876,7 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">distributions</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iter</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">jitter_rng</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prng</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reseeding</span>;

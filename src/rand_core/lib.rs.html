@@ -381,6 +381,28 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2013-2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -481,9 +503,15 @@
 <span class="doccomment">/// </span>
 <span class="doccomment">/// PRNGs are usually infallible, while external generators may fail. Since</span>
 <span class="doccomment">/// errors are rare and may be hard for the user to handle, most of the output</span>
-<span class="doccomment">/// functions only allow errors to be reported as panics; byte output can</span>
-<span class="doccomment">/// however be retrieved from `try_fill` which allows for the usual error</span>
-<span class="doccomment">/// handling.</span>
+<span class="doccomment">/// functions do not return a `Result`; byte output can however be retrieved</span>
+<span class="doccomment">/// with `try_fill` which allows for the usual error handling. If the random</span>
+<span class="doccomment">/// source implements other output functions in terms of `try_fill` (see</span>
+<span class="doccomment">/// `impls::fill_via_try_fill`), then some errors will be handled implicitly,</span>
+<span class="doccomment">/// so long as not too many retries are needed (specifically: `NotReady` is</span>
+<span class="doccomment">/// handled by waiting up to 1 minute, and `Transient` is handled by retrying</span>
+<span class="doccomment">/// a few times). In some applications it may make sense to ensure your entropy</span>
+<span class="doccomment">/// source (e.g. `OsRng`) is ready by calling `try_fill` explicitly before</span>
+<span class="doccomment">/// using any of the other output functions.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Rng</span> {
     <span class="doccomment">/// Return the next random u32.</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
@@ -644,15 +672,14 @@
             _ <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
+    
     <span class="doccomment">/// True if we should retry but wait before retrying</span>
     <span class="doccomment">/// </span>
     <span class="doccomment">/// This implies `should_retry()` is true.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_wait</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorKind</span>::<span class="ident">NotReady</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            _ <span class="op">=&gt;</span> <span class="bool-val">false</span>,
-        }
+        <span class="self">self</span> <span class="op">==</span> <span class="ident">ErrorKind</span>::<span class="ident">NotReady</span>
     }
+    
     <span class="doccomment">/// A description of this error kind</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -667,11 +694,14 @@
 
 <span class="doccomment">/// Error type of random number generators</span>
 <span class="doccomment">/// </span>
-<span class="doccomment">/// This embeds two things, an `ErrorKind`, which can be matched over, and</span>
-<span class="doccomment">/// optional details provided to `new_str` or `new_err`.</span>
+<span class="doccomment">/// This embeds an `ErrorKind` which can be matched over, a *message* to tell</span>
+<span class="doccomment">/// users what happened, and optionally a *cause* (which allows chaining back</span>
+<span class="doccomment">/// to the original error).</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// The cause is omitted in `no_std` mode (see `Error::new` for details).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// Error kind</span>
+    <span class="doccomment">/// Error kind. This enum is included to aid handling of errors.</span>
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ErrorKind</span>,
     <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
@@ -679,22 +709,36 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// Create a new instance, with specified kind, message, and optionally a</span>
+    <span class="doccomment">/// Create a new instance, with specified kind and a message.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span> {
+            <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">msg</span>, <span class="ident">cause</span>: <span class="prelude-val">None</span> }
+        }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>))]</span> {
+            <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">msg</span> }
+        }
+    }
+    <span class="doccomment">/// Create a new instance, with specified kind, message, and a</span>
     <span class="doccomment">/// chained cause.</span>
     <span class="doccomment">/// </span>
-    <span class="doccomment">/// In `no_std` mode the *cause* is ignored.</span>
+    <span class="doccomment">/// Note: `stdError` is an alias for `std::error::Error`.</span>
+    <span class="doccomment">/// </span>
+    <span class="doccomment">/// If not targetting `std` (i.e. `no_std`), this function is replaced by</span>
+    <span class="doccomment">/// another with the same prototype, except that there are no bounds on the</span>
+    <span class="doccomment">/// type `E` (because both `Box` and `stdError` are unavailable), and the</span>
+    <span class="doccomment">/// `cause` is ignored.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_cause</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cause</span>: <span class="ident">E</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
         <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">stdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>
     {
-        <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">msg</span>, <span class="ident">cause</span>: <span class="ident">cause</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">into</span>()) }
+        <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">msg</span>, <span class="ident">cause</span>: <span class="prelude-val">Some</span>(<span class="ident">cause</span>.<span class="ident">into</span>()) }
     }
-    <span class="doccomment">/// Create a new instance, with specified kind, message, and optionally a</span>
+    <span class="doccomment">/// Create a new instance, with specified kind, message, and a</span>
     <span class="doccomment">/// chained cause.</span>
     <span class="doccomment">/// </span>
     <span class="doccomment">/// In `no_std` mode the *cause* is ignored.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">_cause</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_cause</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">kind</span>: <span class="ident">ErrorKind</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">_cause</span>: <span class="ident">E</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">kind</span>, <span class="ident">msg</span> }
     }
     
@@ -706,7 +750,7 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;RNG error: {}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">description</span>())
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;RNG error [{}]: {}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">description</span>(), <span class="self">self</span>.<span class="ident">msg</span>())
     }
 }
 

@@ -48,7 +48,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand_core/lib.rs.html#103-136' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../src/rand_core/lib.rs.html#109-142' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Rng {
     fn <a href='#tymethod.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
 <div class='item-spacer'></div>    fn <a href='#tymethod.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
@@ -102,9 +102,15 @@ to predict&quot; but not cryptographically proven generators.</p>
 
 <p>PRNGs are usually infallible, while external generators may fail. Since
 errors are rare and may be hard for the user to handle, most of the output
-functions only allow errors to be reported as panics; byte output can
-however be retrieved from <code>try_fill</code> which allows for the usual error
-handling.</p>
+functions do not return a <code>Result</code>; byte output can however be retrieved
+with <code>try_fill</code> which allows for the usual error handling. If the random
+source implements other output functions in terms of <code>try_fill</code> (see
+<code>impls::fill_via_try_fill</code>), then some errors will be handled implicitly,
+so long as not too many retries are needed (specifically: <code>NotReady</code> is
+handled by waiting up to 1 minute, and <code>Transient</code> is handled by retrying
+a few times). In some applications it may make sense to ensure your entropy
+source (e.g. <code>OsRng</code>) is ready by calling <code>try_fill</code> explicitly before
+using any of the other output functions.</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
@@ -134,6 +140,7 @@ of output must be considered a breaking change.</p>
         <ul class='item-list' id='implementors-list'>
     <li><code>impl&lt;R&gt; Rng for <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;R&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></li>
 <li><code>impl&lt;'a, R&gt; Rng for &amp;'a mut R <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></li>
+<li><code>impl Rng for <a class="struct" href="../rand/jitter_rng/struct.JitterRng.html" title="struct rand::jitter_rng::JitterRng">JitterRng</a></code></li>
 <li><code>impl Rng for <a class="struct" href="../rand/mock/struct.MockAddRng.html" title="struct rand::mock::MockAddRng">MockAddRng</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code></li>
 <li><code>impl Rng for <a class="struct" href="../rand/mock/struct.MockAddRng.html" title="struct rand::mock::MockAddRng">MockAddRng</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;</code></li>
 <li><code>impl Rng for <a class="struct" href="../rand/prng/struct.ChaChaRng.html" title="struct rand::prng::ChaChaRng">ChaChaRng</a></code></li>

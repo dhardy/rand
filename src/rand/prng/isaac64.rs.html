@@ -448,6 +448,81 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2013 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -465,6 +540,8 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>::<span class="ident">repeat</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span> <span class="kw">as</span> <span class="ident">w</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+
+<span class="kw">use</span> <span class="ident">rand_core</span>::<span class="ident">impls</span>;
 
 <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedFromRng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>};
 
@@ -522,12 +599,13 @@
 <span class="doccomment">/// [1]: Bob Jenkins, [*ISAAC and RC4*]</span>
 <span class="doccomment">///      (http://burtleburtle.net/bob/rand/isaac.html)</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Isaac64Rng</span> {
-    <span class="ident">rsl</span>: [<span class="ident">w64</span>; <span class="ident">RAND_SIZE</span>],
+    <span class="ident">rsl</span>: [<span class="ident">u64</span>; <span class="ident">RAND_SIZE</span>],
     <span class="ident">mem</span>: [<span class="ident">w64</span>; <span class="ident">RAND_SIZE</span>],
     <span class="ident">a</span>: <span class="ident">w64</span>,
     <span class="ident">b</span>: <span class="ident">w64</span>,
     <span class="ident">c</span>: <span class="ident">w64</span>,
-    <span class="ident">cnt</span>: <span class="ident">u32</span>,
+    <span class="ident">index</span>: <span class="ident">u32</span>,
+    <span class="ident">half_used</span>: <span class="ident">bool</span>, <span class="comment">// true if only half of the previous result is used</span>
 }
 
 <span class="comment">// Cannot be derived because [u64; 256] does not implement Clone</span>
@@ -540,7 +618,8 @@
             <span class="ident">a</span>: <span class="self">self</span>.<span class="ident">a</span>,
             <span class="ident">b</span>: <span class="self">self</span>.<span class="ident">b</span>,
             <span class="ident">c</span>: <span class="self">self</span>.<span class="ident">c</span>,
-            <span class="ident">cnt</span>: <span class="self">self</span>.<span class="ident">cnt</span>,
+            <span class="ident">index</span>: <span class="self">self</span>.<span class="ident">index</span>,
+            <span class="ident">half_used</span>: <span class="self">self</span>.<span class="ident">half_used</span>,
         }
     }
 }
@@ -583,6 +662,9 @@
     <span class="doccomment">/// - We maintain one index `i` and add `m` or `m2` as base (m2 for the</span>
     <span class="doccomment">///   `s[i+128 mod 256]`), relying on the optimizer to turn it into pointer</span>
     <span class="doccomment">///   arithmetic.</span>
+    <span class="doccomment">/// - We fill `rsl` backwards. The reference implementation reads values</span>
+    <span class="doccomment">///   from `rsl` in reverse. We read them in the normal direction, to make</span>
+    <span class="doccomment">///   `fill_bytes` a memcopy. To maintain compatibility we fill in reverse.</span>
     <span class="kw">fn</span> <span class="ident">isaac64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">c</span> <span class="op">+=</span> <span class="ident">w</span>(<span class="number">1</span>);
         <span class="comment">// abbreviations</span>
@@ -590,13 +672,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">b</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">c</span>;
         <span class="kw">const</span> <span class="ident">MIDPOINT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">RAND_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
 
-        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+        <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">ind</span>(<span class="ident">mem</span>:<span class="kw-2">&amp;</span>[<span class="ident">w64</span>; <span class="ident">RAND_SIZE</span>], <span class="ident">v</span>: <span class="ident">w64</span>, <span class="ident">amount</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">w64</span> {
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> (<span class="ident">v</span> <span class="op">&gt;&gt;</span> <span class="ident">amount</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="ident">RAND_SIZE</span>;
             <span class="ident">mem</span>[<span class="ident">index</span>]
         }
 
-        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+        <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">rngstep</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Isaac64Rng</span>,
                    <span class="ident">mix</span>: <span class="ident">w64</span>,
                    <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">w64</span>,
@@ -609,7 +691,7 @@
             <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">a</span> <span class="op">+</span> <span class="kw-2">*</span><span class="ident">b</span> <span class="op">+</span> <span class="ident">ind</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">mem</span>, <span class="ident">x</span>, <span class="number">3</span>);
             <span class="ident">ctx</span>.<span class="ident">mem</span>[<span class="ident">base</span> <span class="op">+</span> <span class="ident">m</span>] <span class="op">=</span> <span class="ident">y</span>;
             <span class="kw-2">*</span><span class="ident">b</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">+</span> <span class="ident">ind</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">mem</span>, <span class="ident">y</span>, <span class="number">3</span> <span class="op">+</span> <span class="ident">RAND_SIZE_LEN</span>);
-            <span class="ident">ctx</span>.<span class="ident">rsl</span>[<span class="ident">base</span> <span class="op">+</span> <span class="ident">m</span>] <span class="op">=</span> <span class="kw-2">*</span><span class="ident">b</span>;
+            <span class="ident">ctx</span>.<span class="ident">rsl</span>[<span class="ident">RAND_SIZE</span> <span class="op">-</span> <span class="number">1</span> <span class="op">-</span> <span class="ident">base</span> <span class="op">-</span> <span class="ident">m</span>] <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">b</span>).<span class="number">0</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <span class="number">0</span>;
@@ -632,45 +714,69 @@
 
         <span class="self">self</span>.<span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>;
         <span class="self">self</span>.<span class="ident">b</span> <span class="op">=</span> <span class="ident">b</span>;
-        <span class="self">self</span>.<span class="ident">cnt</span> <span class="op">=</span> <span class="ident">RAND_SIZE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="bool-val">false</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Rng</span> <span class="kw">for</span> <span class="ident">Isaac64Rng</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">next_u64</span>() <span class="kw">as</span> <span class="ident">u32</span>
+        <span class="comment">// Using a local variable for `index`, and checking the size avoids a</span>
+        <span class="comment">// bounds check later on.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="number">2</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;=</span> <span class="ident">RAND_SIZE</span> <span class="op">*</span> <span class="number">2</span> {
+            <span class="self">self</span>.<span class="ident">isaac64</span>();
+            <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
+        }
+
+        <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">half_used</span>;
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">u32</span>;
+
+        <span class="comment">// Index as if this is a u32 slice.</span>
+        <span class="kw">let</span> <span class="ident">rsl</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rsl</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> [<span class="ident">u64</span>; <span class="ident">RAND_SIZE</span>]
+                                            <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> [<span class="ident">u32</span>; <span class="ident">RAND_SIZE</span> <span class="op">*</span> <span class="number">2</span>]) };
+
+        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
+            <span class="ident">rsl</span>[<span class="ident">index</span>]
+        } <span class="kw">else</span> {
+            <span class="ident">rsl</span>[<span class="ident">index</span> <span class="op">^</span> <span class="number">1</span>]
+        }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cnt</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// make some more numbers</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;=</span> <span class="ident">RAND_SIZE</span> {
             <span class="self">self</span>.<span class="ident">isaac64</span>();
+            <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
         }
-        <span class="self">self</span>.<span class="ident">cnt</span> <span class="op">-=</span> <span class="number">1</span>;
 
-        <span class="comment">// self.cnt is at most RAND_SIZE, but that is before the</span>
-        <span class="comment">// subtraction above. We want to index without bounds</span>
-        <span class="comment">// checking, but this could lead to incorrect code if someone</span>
-        <span class="comment">// misrefactors, so we check, sometimes.</span>
-        <span class="comment">//</span>
-        <span class="comment">// (Changes here should be reflected in IsaacRng.next_u32.)</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>((<span class="self">self</span>.<span class="ident">cnt</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">RAND_SIZE</span>);
-
-        <span class="comment">// (the % is cheaply telling the optimiser that we&#39;re always</span>
-        <span class="comment">// in bounds, without unsafe. NB. this is a power of two, so</span>
-        <span class="comment">// it optimises to a bitwise mask).</span>
-        <span class="self">self</span>.<span class="ident">rsl</span>[<span class="self">self</span>.<span class="ident">cnt</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="ident">RAND_SIZE</span>].<span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rsl</span>[<span class="ident">index</span>];
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u128</span> {
-        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">next_u128_via_u64</span>(<span class="self">self</span>)
+        <span class="ident">impls</span>::<span class="ident">next_u128_via_u64</span>(<span class="self">self</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">fill_bytes_via_u32</span>(<span class="self">self</span>, <span class="ident">dest</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_len</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">while</span> <span class="ident">read_len</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">len</span>() {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;=</span> <span class="ident">RAND_SIZE</span> {
+                <span class="self">self</span>.<span class="ident">isaac64</span>();
+            }
+
+            <span class="kw">let</span> (<span class="ident">consumed_u64</span>, <span class="ident">filled_u8</span>) <span class="op">=</span>
+                <span class="ident">impls</span>::<span class="ident">fill_via_u64_chunks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rsl</span>[<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>..],
+                                           <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="ident">read_len</span>..]);
+
+            <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">consumed_u64</span> <span class="kw">as</span> <span class="ident">u32</span>;
+            <span class="ident">read_len</span> <span class="op">+=</span> <span class="ident">filled_u8</span>;
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">try_fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
@@ -710,12 +816,13 @@
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span> {
-        <span class="ident">rsl</span>: [<span class="ident">w</span>(<span class="number">0</span>); <span class="ident">RAND_SIZE</span>],
+        <span class="ident">rsl</span>: [<span class="number">0</span>; <span class="ident">RAND_SIZE</span>],
         <span class="ident">mem</span>: <span class="ident">mem</span>,
         <span class="ident">a</span>: <span class="ident">w</span>(<span class="number">0</span>),
         <span class="ident">b</span>: <span class="ident">w</span>(<span class="number">0</span>),
         <span class="ident">c</span>: <span class="ident">w</span>(<span class="number">0</span>),
-        <span class="ident">cnt</span>: <span class="number">0</span>,
+        <span class="ident">index</span>: <span class="number">0</span>,
+        <span class="ident">half_used</span>: <span class="bool-val">false</span>,
     };
 
     <span class="comment">// Prepare the first set of results</span>
@@ -772,30 +879,27 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>, <span class="ident">iter</span>};
+    <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>, <span class="ident">SeedFromRng</span>, <span class="ident">iter</span>};
     <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Isaac64Rng</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_isaac64_from_seed</span>() {
+    <span class="kw">fn</span> <span class="ident">test_isaac64_construction</span>() {
+        <span class="comment">// Test that various construction techniques produce a working RNG.</span>
+        
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> ::<span class="ident">test</span>::<span class="ident">rng</span>())
                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>())
                    .<span class="ident">take</span>(<span class="number">256</span>)
                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;&gt;</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>[..]);
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng1</span>.<span class="ident">next_u64</span>(), <span class="ident">rng2</span>.<span class="ident">next_u64</span>());
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_isaac64_from_seed_fixed</span>() {
+        <span class="ident">rng1</span>.<span class="ident">next_u64</span>();
+        
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_rng</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> ::<span class="ident">test</span>::<span class="ident">rng</span>()).<span class="ident">unwrap</span>();
+        <span class="ident">rng2</span>.<span class="ident">next_u64</span>();
+        
         <span class="kw">let</span> <span class="ident">seed</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">23</span>, <span class="number">456</span>, <span class="number">7890</span>, <span class="number">12345</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>[..]);
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng1</span>.<span class="ident">next_u64</span>(), <span class="ident">rng2</span>.<span class="ident">next_u64</span>());
-        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng3</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>[..]);
+        <span class="ident">rng3</span>.<span class="ident">next_u64</span>();
+        
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -823,6 +927,52 @@
                         <span class="number">2606123525235546165</span>, <span class="number">15790932315217671084</span>,
                         <span class="number">596345674630742204</span>, <span class="number">9947027391921273664</span>,
                         <span class="number">11788097613744130851</span>, <span class="number">10391409374914919106</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_isaac64_true_values_32</span>() {
+        <span class="kw">let</span> <span class="ident">seed</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">23</span>, <span class="number">456</span>, <span class="number">7890</span>, <span class="number">12345</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">12</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng1</span>.<span class="ident">next_u32</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
+        <span class="comment">// Subset of above values, as an LE u32 sequence</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
+                   [<span class="number">141028748</span>, <span class="number">127386717</span>,
+                    <span class="number">1058730652</span>, <span class="number">3347555894</span>,
+                    <span class="number">851491469</span>, <span class="number">4039984500</span>,
+                    <span class="number">2692730210</span>, <span class="number">288449107</span>,
+                    <span class="number">646103879</span>, <span class="number">2782923823</span>,
+                    <span class="number">4195642895</span>, <span class="number">3252674613</span>]);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_isaac64_true_values_mixed</span>() {
+        <span class="kw">let</span> <span class="ident">seed</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">23</span>, <span class="number">456</span>, <span class="number">7890</span>, <span class="number">12345</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
+        <span class="comment">// Test alternating between `next_u64` and `next_u32` works as expected.</span>
+        <span class="comment">// Values are the same as `test_isaac64_true_values` and</span>
+        <span class="comment">// `test_isaac64_true_values_32`.</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="number">547121783600835980</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="number">1058730652</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="number">3347555894</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="number">17351601304698403469</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="number">2692730210</span>);
+        <span class="comment">// Skip one u32</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="number">11952566807690396487</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="number">4195642895</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_isaac64_true_bytes</span>() {
+        <span class="kw">let</span> <span class="ident">seed</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">23</span>, <span class="number">456</span>, <span class="number">7890</span>, <span class="number">12345</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">Isaac64Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+        <span class="ident">rng1</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>);
+        <span class="comment">// Same as first values in test_isaac64_true_values as bytes in LE order</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">buf</span>,
+                   [<span class="number">140</span>, <span class="number">237</span>, <span class="number">103</span>, <span class="number">8</span>, <span class="number">93</span>, <span class="number">196</span>, <span class="number">151</span>, <span class="number">7</span>,
+                    <span class="number">156</span>, <span class="number">242</span>, <span class="number">26</span>, <span class="number">63</span>, <span class="number">54</span>, <span class="number">166</span>, <span class="number">135</span>, <span class="number">199</span>,
+                    <span class="number">141</span>, <span class="number">186</span>, <span class="number">192</span>, <span class="number">50</span>, <span class="number">116</span>, <span class="number">69</span>, <span class="number">205</span>, <span class="number">240</span>,
+                    <span class="number">98</span>, <span class="number">205</span>, <span class="number">127</span>, <span class="number">160</span>, <span class="number">83</span>, <span class="number">98</span>, <span class="number">49</span>, <span class="number">17</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

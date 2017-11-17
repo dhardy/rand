@@ -4,20 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `CryptoRng` trait in crate `rand_core`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, CryptoRng">
+    <meta name="description" content="API documentation for the Rust `jitter_rng` mod in crate `rand`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, jitter_rng">
 
-    <title>rand_core::CryptoRng - Rust</title>
+    <title>rand::jitter_rng - Rust</title>
 
-    <link rel="stylesheet" type="text/css" href="../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../main.css">
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
     
 
     <link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico">
     
 </head>
-<body class="rustdoc trait">
+<body class="rustdoc mod">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -28,8 +28,8 @@
     
 
     <nav class="sidebar">
-        <a href='../rand_core/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo' width='100'></a>
-        <p class='location'>Trait CryptoRng</p><div class="block items"><ul><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='index.html'>rand_core</a></p><script>window.sidebarCurrent = {name: 'CryptoRng', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <a href='../../rand/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo' width='100'></a>
+        <p class='location'>Module jitter_rng</p><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../index.html'>rand</a></p><script>window.sidebarCurrent = {name: 'jitter_rng', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -44,34 +44,30 @@
     </nav>
 
     <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>rand_core</a>::<wbr><a class="trait" href=''>CryptoRng</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>rand</a>::<wbr><a class="mod" href=''>jitter_rng</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand_core/lib.rs.html#161' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait CryptoRng: <a class="trait" href="../rand_core/trait.Rng.html" title="trait rand_core::Rng">Rng</a> { }</pre><div class='docblock'><p>A marker trait for an <code>Rng</code> which may be considered for use in
-cryptography.</p>
-
-<p><em>Cryptographically secure generators</em>, also known as <em>CSPRNGs</em>, should
-satisfy an additional properties over other generators: given the first
-<em>k</em> bits of an algorithm&#39;s output
-sequence, it should not be possible using polynomial-time algorithms to
-predict the next bit with probability significantly greater than 50%.</p>
-
-<p>Some generators may satisfy an additional property, however this is not
-required: if the CSPRNG&#39;s state is revealed, it should not be
-computationally-feasible to reconstruct output prior to this. Some other
-generators allow backwards-computation and are consided <em>reversible</em>.</p>
-
-<p>Note that this trait is provided for guidance only and cannot guarantee
-suitability for cryptographic applications. In general it should only be
-implemented for well-reviewed code implementing well-regarded algorithms.</p>
-</div>
-        <h2 id='implementors'>Implementors</h2>
-        <ul class='item-list' id='implementors-list'>
-    </ul><script type="text/javascript" async
-                         src="../implementors/rand_core/trait.CryptoRng.js">
-                 </script></section>
+               </span><a class='srclink' href='../../src/rand/jitter_rng.rs.html#17-722' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Non-physical true random number generator based on timing jitter.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.JitterRng.html"
+                                  title='struct rand::jitter_rng::JitterRng'>JitterRng</a></td>
+                           <td class='docblock-short'>
+                                <p>A true random number generator based on jitter in the CPU execution time,
+and jitter in memory access time.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.TimerError.html"
+                                  title='enum rand::jitter_rng::TimerError'>TimerError</a></td>
+                           <td class='docblock-short'>
+                                <p>An error that can occur when <code>test_timer</code> fails.</p>
+                           </td>
+                       </tr></table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -125,10 +121,10 @@ implemented for well-reviewed code implementing well-regarded algorithms.</p>
     
 
     <script>
-        window.rootPath = "../";
-        window.currentCrate = "rand_core";
+        window.rootPath = "../../";
+        window.currentCrate = "rand";
     </script>
-    <script src="../main.js"></script>
-    <script defer src="../search-index.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

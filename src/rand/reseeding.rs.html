@@ -280,6 +280,14 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2013 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -295,8 +303,6 @@
 <span class="doccomment">//! generates a certain number of random bytes.</span>
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">max</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
-
 <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">NewSeeded</span>;
@@ -310,8 +316,12 @@
 <span class="doccomment">/// </span>
 <span class="doccomment">/// Note that reseeding is considered advisory only. If reseeding fails, the</span>
 <span class="doccomment">/// generator may delay reseeding or not reseed at all.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Rsdr</span>: <span class="ident">Debug</span><span class="op">&gt;</span> {
+<span class="doccomment">/// </span>
+<span class="doccomment">/// This derives `Clone` if both the inner RNG `R` and the reseeder `Rsdr` do.</span>
+<span class="doccomment">/// Note that reseeders using external entropy should deliberately not</span>
+<span class="doccomment">/// implement `Clone`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Rsdr</span>: <span class="ident">Reseeder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;&gt;</span> {
     <span class="ident">rng</span>: <span class="ident">R</span>,
     <span class="ident">generation_threshold</span>: <span class="ident">u64</span>,
     <span class="ident">bytes_generated</span>: <span class="ident">u64</span>,
@@ -342,20 +352,28 @@
     <span class="doccomment">/// On error, this may delay reseeding or not reseed at all.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reseed_if_necessary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">bytes_generated</span> <span class="op">&gt;=</span> <span class="self">self</span>.<span class="ident">generation_threshold</span> {
-            <span class="kw">while</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reseeder</span>.<span class="ident">reseed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rng</span>) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_count</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="kw">loop</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reseeder</span>.<span class="ident">reseed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rng</span>) {
                     <span class="comment">// TODO: log?</span>
                     <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>.<span class="ident">should_wait</span>() {
                         <span class="comment">// Delay reseeding</span>
                         <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">max</span>(<span class="self">self</span>.<span class="ident">generation_threshold</span> <span class="op">&gt;&gt;</span> <span class="number">8</span>, <span class="self">self</span>.<span class="ident">bytes_generated</span>);
                         <span class="self">self</span>.<span class="ident">bytes_generated</span> <span class="op">-=</span> <span class="ident">delay</span>;
-                        <span class="bool-val">false</span>
+                        <span class="kw">break</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>.<span class="ident">should_retry</span>() {
-                        <span class="bool-val">true</span>    <span class="comment">// immediate retry</span>
+                        <span class="kw">if</span> <span class="ident">err_count</span> <span class="op">&gt;</span> <span class="number">4</span> {  <span class="comment">// arbitrary limit</span>
+                            <span class="comment">// TODO: log details &amp; cause?</span>
+                            <span class="kw">break</span>;  <span class="comment">// give up trying to reseed</span>
+                        }
+                        <span class="ident">err_count</span> <span class="op">+=</span> <span class="number">1</span>;
+                        <span class="kw">continue</span>;   <span class="comment">// immediate retry</span>
                     } <span class="kw">else</span> {
-                        <span class="bool-val">false</span>   <span class="comment">// give up trying to reseed</span>
+                        <span class="kw">break</span>;  <span class="comment">// give up trying to reseed</span>
                     }
-                } <span class="kw">else</span> { <span class="bool-val">false</span> } {
-                <span class="comment">// empty loop body</span>
+                } <span class="kw">else</span> {
+                    <span class="kw">break</span>;  <span class="comment">// no reseeding</span>
+                }
             }
             <span class="self">self</span>.<span class="ident">bytes_generated</span> <span class="op">=</span> <span class="number">0</span>;
         }
@@ -377,7 +395,7 @@
                         <span class="ident">ErrorKind</span>::<span class="ident">Transient</span>
                     }
                 };
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">new</span>(<span class="ident">newkind</span>, <span class="string">&quot;reseeding failed&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">err</span>)));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">new_with_cause</span>(<span class="ident">newkind</span>, <span class="string">&quot;reseeding failed&quot;</span>, <span class="ident">err</span>));
             }
             <span class="self">self</span>.<span class="ident">bytes_generated</span> <span class="op">=</span> <span class="number">0</span>;
         }
@@ -435,7 +453,11 @@
 }
 
 <span class="doccomment">/// Something that can be used to reseed an RNG via `ReseedingRng`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reseeder</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>: <span class="ident">Debug</span> {
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Note that implementations should support `Clone` only if reseeding is</span>
+<span class="doccomment">/// deterministic (no external entropy source). This is so that a `ReseedingRng`</span>
+<span class="doccomment">/// only supports `Clone` if fully deterministic.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reseeder</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Reseed the given RNG.</span>
     <span class="doccomment">/// </span>
     <span class="doccomment">/// On error, this should just forward the source error; errors are handled</span>
@@ -445,19 +467,13 @@
 
 <span class="doccomment">/// Reseed an RNG using `NewSeeded` to replace the current instance.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReseedWithNew</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="ident">NewSeeded</span><span class="op">&gt;</span> <span class="ident">Reseeder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReseedWithNew</span> {
     <span class="kw">fn</span> <span class="ident">reseed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">R</span>::<span class="ident">new</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=&gt;</span> {
-                <span class="kw-2">*</span><span class="ident">rng</span> <span class="op">=</span> <span class="ident">result</span>;
-                <span class="prelude-val">Ok</span>(())
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>)
-        }
+        <span class="ident">R</span>::<span class="ident">new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">rng</span> <span class="op">=</span> <span class="ident">result</span>)
     }
 }
 
@@ -468,7 +484,7 @@
     <span class="kw">use</span> {<span class="ident">SeedableRng</span>, <span class="ident">Rng</span>, <span class="ident">iter</span>, <span class="ident">Error</span>};
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ReseedingRng</span>, <span class="ident">Reseeder</span>};
     
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
     <span class="kw">struct</span> <span class="ident">ReseedMock</span>;
     <span class="kw">impl</span> <span class="ident">Reseeder</span><span class="op">&lt;</span><span class="ident">MockAddRng</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">ReseedMock</span> {
         <span class="kw">fn</span> <span class="ident">reseed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MockAddRng</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
