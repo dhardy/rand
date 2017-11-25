@@ -236,16 +236,15 @@ impl SeedableRng for ChaChaRng {
 
 #[cfg(test)]
 mod test {
-    use {Rng, SeedableRng};
+    use {Rng, SeedableRng, FromHashable};
     use super::ChaChaRng;
 
     #[test]
     fn test_rng_rand_seeded() {
         // Test that various construction techniques produce a working RNG.
-        /* TODO: from_hashable
         let mut ra = ChaChaRng::from_hashable("some weak seed");
         ra.next_u32();
-        */
+        
         let mut rb = ChaChaRng::from_rng(&mut ::test::rng()).unwrap();
         rb.next_u32();
         

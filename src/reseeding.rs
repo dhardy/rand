@@ -188,7 +188,7 @@ impl<R: Rng + NewSeeded> Reseeder<R> for ReseedWithNew {
 mod test {
     use std::iter::repeat;
     use mock::MockAddRng;
-    use {SeedableRng, Rng, iter, Error};
+    use {SeedableRng, Rng, iter, Error, SeaHash};
     use super::{ReseedingRng, Reseeder};
     
     #[derive(Debug, Clone)]
@@ -216,7 +216,7 @@ mod test {
     #[test]
     fn test_rng_seeded() {
         // Default seed threshold is way beyond what we use here
-        let seed = [0, 1, 2, 3, 4, 5, 6, 7];
+        let seed = SeaHash::hash_fixed(2).into();
         let mut ra: MyRng = ReseedingRng::from_reseeder(ReseedMock, seed);
         let mut rb = MockAddRng::from_seed(seed);
         assert!(::test::iter_eq(iter(&mut ra).map(|rng| rng.next_u32()).take(100),

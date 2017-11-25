@@ -273,6 +273,7 @@ pub use thread_local::{ThreadRng, thread_rng, random, random_with};
 // local use declarations
 use prng::IsaacWordRng;
 use distributions::range::Range;
+use hash::{Hashable, SeaHash};
 
 // macro: copied from `arrayref` crate
 macro_rules! array_ref {
@@ -293,6 +294,7 @@ macro_rules! array_ref {
 
 // public modules
 pub mod distributions;
+pub mod hash;
 pub mod iter;
 pub mod jitter;
 pub mod mock;
@@ -451,6 +453,25 @@ pub trait Sample: Rng {
 impl<R: Rng+?Sized> Sample for R {
     fn sample<T, D: Distribution<T>>(&mut self, distr: D) -> T {
         distr.sample(self)
+    }
+}
+
+pub trait FromHashable: SeedableRng {
+    /// Create a new PRNG using any hashable input as the seed.
+    /// 
+    /// Again, reproducibility is required; that is, use of this function with
+    /// fixed input should produce the same result on all platforms and across
+    /// all supporting versions. PRNGs do not need to implement this function
+    /// themselves.
+    fn from_hashable<T: Hashable>(x: T) -> Self;
+}
+
+impl<R> FromHashable for R
+where R: SeedableRng, <R as SeedableRng>::Seed: From<SeaHash>
+{
+    fn from_hashable<T: Hashable>(x: T) -> Self {
+        let seed = SeaHash::hash_fixed(x).into();
+        Self::from_seed(seed)
     }
 }
 

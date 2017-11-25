@@ -340,16 +340,15 @@ impl SeedableRng for Isaac64Rng {
 
 #[cfg(test)]
 mod test {
-    use {Rng, SeedableRng};
+    use {Rng, SeedableRng, FromHashable};
     use super::Isaac64Rng;
 
     #[test]
     fn test_isaac64_construction() {
         // Test that various construction techniques produce a working RNG.
-        /* TODO: from_hashable
         let mut rng1 = Isaac64Rng::from_hashable("some weak seed");
         rng1.next_u64();
-        */
+        
 
         let seed = [1,0,0,0, 23,0,0,0, 200,1,0,0, 210,30,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
         let mut rng2 = Isaac64Rng::from_seed(seed);
