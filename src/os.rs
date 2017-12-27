@@ -14,7 +14,7 @@
 use std::fmt;
 use std::io::Read;
 
-use {Rng, Error, ErrorKind};
+use {CryptoRng, Rng, Error, ErrorKind};
 // TODO: replace many of the panics below with Result error handling
 
 /// A random number generator that retrieves randomness straight from
@@ -76,6 +76,8 @@ impl Rng for OsRng {
         self.0.try_fill(v)
     }
 }
+
+impl CryptoRng for OsRng {}
 
 // Specialisation of `ReadRng` for our purposes
 #[derive(Debug)]

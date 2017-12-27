@@ -13,7 +13,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use {Rng, StdRng, NewSeeded, Distribution, Default, Sample, Error};
+use {CryptoRng, Rng, StdRng, NewSeeded, Distribution, Default, Sample, Error};
 
 use reseeding::{ReseedingRng, ReseedWithNew};
 
@@ -48,6 +48,9 @@ impl Rng for ThreadRng {
         self.rng.borrow_mut().try_fill(bytes)
     }
 }
+
+// FIXME: use an inner RNG which is really a CryptoRng!
+impl CryptoRng for ThreadRng {}
 
 thread_local!(
     static THREAD_RNG_KEY: Rc<RefCell<ReseedingStdRng>> = {
