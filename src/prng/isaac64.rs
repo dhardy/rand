@@ -355,6 +355,7 @@ mod test {
         let mut rng2 = Isaac64Rng::from_seed(seed);
         assert_eq!(rng2.next_u64(), 14964555543728284049);
 
+        // FIXME
         let mut rng3 = Isaac64Rng::from_rng(&mut rng2).unwrap();
         assert_eq!(rng3.next_u64(), 919595328260451758);
     }

@@ -10,7 +10,7 @@
 
 //! The ISAAC random number generator.
 
-use {Rng, SeedableRng, Error};
+use {CryptoRng, Rng, SeedableRng, Error};
 
 #[cfg(target_pointer_width = "32")]
 type WordRngType = super::isaac::IsaacRng;
@@ -62,7 +62,7 @@ impl SeedableRng for IsaacWordRng {
         IsaacWordRng(WordRngType::from_seed(seed))
     }
 
-    fn from_rng<R: Rng>(rng: R) -> Result<Self, Error> {
+    fn from_rng<R: CryptoRng>(rng: R) -> Result<Self, Error> {
         WordRngType::from_rng(rng).map(|rng| IsaacWordRng(rng))
     }
 }

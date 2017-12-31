@@ -183,6 +183,8 @@ impl<'a, R: Rng+?Sized> Rng for &'a mut R {
     }
 }
 
+impl<'a, R: CryptoRng+?Sized> CryptoRng for &'a mut R {}
+
 #[cfg(feature="std")]
 impl<R: Rng+?Sized> Rng for Box<R> {
     fn next_u32(&mut self) -> u32 {
@@ -206,6 +208,8 @@ impl<R: Rng+?Sized> Rng for Box<R> {
         (**self).try_fill(dest)
     }
 }
+
+impl<R: CryptoRng+?Sized> CryptoRng for Box<R> {}
 
 
 mod private {
@@ -259,7 +263,7 @@ pub trait SeedableRng: Sized {
     /// hand, seeding a simple numerical generator from another of the same
     /// type sometimes has serious side effects such as effectively cloning the
     /// generator.
-    fn from_rng<R: Rng>(mut rng: R) -> Result<Self, Error> {
+    fn from_rng<R: CryptoRng>(mut rng: R) -> Result<Self, Error> {
         let mut seed = Self::Seed::default();
         let size = mem::size_of::<Self::Seed>() as usize;
         unsafe {

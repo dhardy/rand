@@ -487,7 +487,7 @@ impl SeedableRng for StdRng {
     fn from_seed(seed: Self::Seed) -> Self {
         StdRng(IsaacWordRng::from_seed(seed))
     }
-    fn from_rng<R: Rng>(rng: R) -> Result<Self, Error> {
+    fn from_rng<R: CryptoRng>(rng: R) -> Result<Self, Error> {
         IsaacWordRng::from_rng(rng).map(|rng| StdRng(rng))
     }
 }

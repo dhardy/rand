@@ -236,7 +236,7 @@ impl SeedableRng for ChaChaRng {
 
 #[cfg(test)]
 mod test {
-    use {Rng, SeedableRng};
+    use {Rng, SeedableRng, thread_rng};
     use super::ChaChaRng;
 
     #[test]
@@ -246,7 +246,7 @@ mod test {
         let mut ra = ChaChaRng::from_hashable("some weak seed");
         ra.next_u32();
         */
-        let mut rb = ChaChaRng::from_rng(&mut ::test::rng()).unwrap();
+        let mut rb = ChaChaRng::from_rng(&mut thread_rng()).unwrap();
         rb.next_u32();
         
         let seed = [0,0,0,0,0,0,0,0,
