@@ -48,7 +48,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand_core/lib.rs.html#11-360' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../src/rand_core/lib.rs.html#11-464' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Random number generation traits</p>
 
 <p>This crate is mainly of interest to crates publishing implementations of
@@ -58,8 +58,8 @@
 <p><code>Rng</code> is the core trait implemented by algorithmic pseudo-random number
 generators and external random-number sources.</p>
 
-<p><code>SeedFromRng</code> and <code>SeedableRng</code> are extension traits for construction and
-reseeding.</p>
+<p><code>SeedableRng</code> is an extension trait for construction from fixed seeds and
+other random number generators.</p>
 
 <p><code>Error</code> is provided for error-handling. It is safe to use in <code>no_std</code>
 environments.</p>
@@ -67,9 +67,6 @@ environments.</p>
 <p>The <code>impls</code> sub-module includes a few small functions to assist
 implementation of <code>Rng</code>. Since this module is only of interest to <code>Rng</code>
 implementors, it is not re-exported from <code>rand</code>.</p>
-
-<p>The <code>mock</code> module includes a mock <code>Rng</code> implementation. Even though this is
-only useful for testing, it is currently always built.</p>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                        <tr class=' module-item'>
@@ -77,6 +74,13 @@ only useful for testing, it is currently always built.</p>
                                   title='mod rand_core::impls'>impls</a></td>
                            <td class='docblock-short'>
                                 <p>Helper functions for implementing <code>Rng</code> functions.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="le/index.html"
+                                  title='mod rand_core::le'>le</a></td>
+                           <td class='docblock-short'>
+                                <p>Little-Endian utilities</p>
                            </td>
                        </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -112,20 +116,18 @@ cryptography.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="trait" href="trait.SeedFromRng.html"
-                                  title='trait rand_core::SeedFromRng'>SeedFromRng</a></td>
+                           <td><a class="trait" href="trait.SeedRestriction.html"
+                                  title='trait rand_core::SeedRestriction'>SeedRestriction</a></td>
                            <td class='docblock-short'>
-                                <p>Support mechanism for creating random number generators seeded by other
-generators. All PRNGs should support this to enable <code>NewSeeded</code> support,
-which should be the preferred way of creating randomly-seeded generators.</p>
+                                <p>The seed type is restricted to these types. This trait is sealed to prevent
+user-extension.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="trait" href="trait.SeedableRng.html"
                                   title='trait rand_core::SeedableRng'>SeedableRng</a></td>
                            <td class='docblock-short'>
-                                <p>A random number generator that can be explicitly seeded to produce
-the same stream of randomness multiple times.</p>
+                                <p>A random number generator that can be explicitly seeded.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
@@ -144,13 +146,15 @@ the same stream of randomness multiple times.</p>
                     <dd>Show this help dialog</dd>
                     <dt>S</dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt>↑</dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt>↓</dt>
                     <dd>Move down in search results</dd>
+                    <dt>↹</dt>
+                    <dd>Switch tab</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
+                    <dt style="width:31px;">+ / -</dt>
                     <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>

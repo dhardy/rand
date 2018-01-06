@@ -29,7 +29,7 @@
 
     <nav class="sidebar">
         <a href='../../rand/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo' width='100'></a>
-        <p class='location'>Trait Choose</p><div class="block items"><ul><li><a href="#required-methods">Required Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='../index.html'>rand</a>::<wbr><a href='index.html'>sequences</a></p><script>window.sidebarCurrent = {name: 'Choose', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'>Trait Choose</p><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.choose">choose</a></div><a class="sidebar-title" href="#foreign-impls">Implementations on Foreign Types</a><div class="sidebar-links"><a href="#impl-Choose%3C%26%27a%20T%3E">&amp;&#39;a [T]</a><a href="#impl-Choose%3C%26%27a%20mut%20T%3E">&amp;&#39;a mut [T]</a><a href="#impl-Choose%3CT%3E">Vec&lt;T&gt;</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='../index.html'>rand</a>::<wbr><a href='index.html'>sequences</a></p><script>window.sidebarCurrent = {name: 'Choose', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -50,12 +50,14 @@
                    </a>
                </span><a class='srclink' href='../../src/rand/sequences/mod.rs.html#22-39' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Choose&lt;T&gt; {
-    fn <a href='#tymethod.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: &amp;mut R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;;
+    fn <a href='#tymethod.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;;
 }</pre><div class='docblock'><p>This trait implements a <code>choose</code> operations on slices and sequences.</p>
 </div>
-            <h2 id='required-methods'>Required Methods</h2>
+            <h2 id='required-methods' class='small-section-header'>
+              Required Methods<a href='#required-methods' class='anchor'></a>
+            </h2>
             <div class='methods'>
-        <h3 id='tymethod.choose' class='method'><span id='choose.v' class='invisible'><code>fn <a href='#tymethod.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: &amp;mut R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</code></span></h3><div class='docblock'><p>Return one element from a sequence.</p>
+        <h3 id='tymethod.choose' class='method'><span id='choose.v' class='invisible'><code>fn <a href='#tymethod.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</code></span></h3><div class='docblock'><p>Return one element from a sequence.</p>
 
 <p>Returns <code>None</code> only if the sequence is empty.</p>
 
@@ -69,12 +71,21 @@
 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">choices</span>[..].<span class="ident">choose</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>));
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">choices</span>[..<span class="number">0</span>].<span class="ident">choose</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>), <span class="prelude-val">None</span>);</pre>
 </div></div>
-        <h2 id='implementors'>Implementors</h2>
+                <h2 id='foreign-impls' class='small-section-header'>
+                  Implementations on Foreign Types<a href='#foreign-impls' class='anchor'></a>
+                </h2>
+            <h3 id='impl-Choose%3C%26%27a%20T%3E' class='impl'><span class='in-band'><code>impl&lt;'a, T&gt; <a class="trait" href="../../rand/sequences/trait.Choose.html" title="trait rand::sequences::Choose">Choose</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a </a>T&gt; for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a [T]</a></code><a href='#impl-Choose%3C%26%27a%20T%3E' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#41-49' title='goto source code'>[src]</a></span></h3>
+<span class='docblock autohide'><div class='impl-items'><h4 id='method.choose' class="method"><span id='choose.v-1' class='invisible'><code>fn <a href='#method.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a </a>T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#42-48' title='goto source code'>[src]</a></span></h4>
+</div></span><h3 id='impl-Choose%3C%26%27a%20mut%20T%3E' class='impl'><span class='in-band'><code>impl&lt;'a, T&gt; <a class="trait" href="../../rand/sequences/trait.Choose.html" title="trait rand::sequences::Choose">Choose</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a mut </a>T&gt; for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a mut [T]</a></code><a href='#impl-Choose%3C%26%27a%20mut%20T%3E' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#51-60' title='goto source code'>[src]</a></span></h3>
+<span class='docblock autohide'><div class='impl-items'><h4 id='method.choose-1' class="method"><span id='choose.v-2' class='invisible'><code>fn <a href='#method.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a mut </a>T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#52-59' title='goto source code'>[src]</a></span></h4>
+</div></span><h3 id='impl-Choose%3CT%3E' class='impl'><span class='in-band'><code>impl&lt;T&gt; <a class="trait" href="../../rand/sequences/trait.Choose.html" title="trait rand::sequences::Choose">Choose</a>&lt;T&gt; for <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;</code><a href='#impl-Choose%3CT%3E' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#63-72' title='goto source code'>[src]</a></span></h3>
+<span class='docblock autohide'><div class='impl-items'><h4 id='method.choose-2' class="method"><span id='choose.v-3' class='invisible'><code>fn <a href='#method.choose' class='fnname'>choose</a>&lt;R:&nbsp;<a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(self, rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/rand/sequences/mod.rs.html#64-71' title='goto source code'>[src]</a></span></h4>
+</div></span>
+        <h2 id='implementors' class='small-section-header'>
+          Implementors<a href='#implementors' class='anchor'></a>
+        </h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl&lt;'a, T&gt; Choose&lt;&amp;'a T&gt; for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a [</a>T<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a></code></li>
-<li><code>impl&lt;'a, T&gt; Choose&lt;&amp;'a mut T&gt; for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a mut [</a>T<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a></code></li>
-<li><code>impl&lt;T&gt; Choose&lt;T&gt; for <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;</code></li>
-</ul><script type="text/javascript" async
+    </ul><script type="text/javascript" async
                          src="../../implementors/rand/sequences/trait.Choose.js">
                  </script></section>
     <section id='search' class="content hidden"></section>
@@ -93,13 +104,15 @@
                     <dd>Show this help dialog</dd>
                     <dt>S</dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt>↑</dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt>↓</dt>
                     <dd>Move down in search results</dd>
+                    <dt>↹</dt>
+                    <dd>Switch tab</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
+                    <dt style="width:31px;">+ / -</dt>
                     <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>

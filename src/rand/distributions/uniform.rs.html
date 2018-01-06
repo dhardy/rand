@@ -356,15 +356,6 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -382,54 +373,8 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
 
 <span class="kw">use</span> <span class="ident">Rng</span>;
-<span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Rand</span>};
+<span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">utils</span>::<span class="ident">FloatConversions</span>;
-
-<span class="comment">// ----- convenience functions -----</span>
-
-<span class="doccomment">/// Sample values uniformly over the whole range supported by the type</span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// This method has precisely two template parameters. To fix the output type,</span>
-<span class="doccomment">/// use the syntax `uniform::&lt;u32, _&gt;(rng)`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uniform</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Rand</span><span class="op">&lt;</span><span class="ident">Uniform</span><span class="op">&gt;</span>, <span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
-    <span class="ident">T</span>::<span class="ident">rand</span>(<span class="ident">rng</span>, <span class="ident">Uniform</span>)
-}
-
-<span class="doccomment">/// Sample a `char`, uniformly distributed over all Unicode scalar values,</span>
-<span class="doccomment">/// i.e. all code points in the range `0...0x10_FFFF`, except for the range</span>
-<span class="doccomment">/// `0xD800...0xDFFF` (the surrogate code points).  This includes</span>
-<span class="doccomment">/// unassigned/reserved code points.</span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// TODO: should this be removed in favour of a distribution?</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codepoint</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">char</span> {
-    <span class="comment">// a char is 21 bits</span>
-    <span class="kw">const</span> <span class="ident">CHAR_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x001f_ffff</span>;
-    <span class="kw">loop</span> {
-        <span class="comment">// Rejection sampling. About 0.2% of numbers with at most</span>
-        <span class="comment">// 21-bits are invalid codepoints (surrogates), so this</span>
-        <span class="comment">// will succeed first go almost every time.</span>
-        <span class="kw">match</span> <span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="op">&amp;</span> <span class="ident">CHAR_MASK</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">c</span>,
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> {}
-        }
-    }
-}
-
-<span class="doccomment">/// Sample a `char`, uniformly distributed over ASCII letters and numbers:</span>
-<span class="doccomment">/// a-z, A-Z and 0-9.</span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// TODO: should this be removed in favour of `AsciiWordChar`?</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_word_char</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">char</span> {
-    <span class="kw">use</span> <span class="ident">sequences</span>::<span class="ident">Choose</span>;
-    <span class="kw">const</span> <span class="ident">GEN_ASCII_STR_CHARSET</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span>
-        <span class="string">b&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-            abcdefghijklmnopqrstuvwxyz\
-            0123456789&quot;</span>;
-    <span class="kw-2">*</span><span class="ident">GEN_ASCII_STR_CHARSET</span>.<span class="ident">choose</span>(<span class="ident">rng</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">char</span>
-}
-
 
 <span class="comment">// ----- Sampling distributions -----</span>
 
@@ -449,19 +394,29 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Closed01</span>;
 
-<span class="doccomment">/// Sample values uniformly from the ASCII ranges z-a, A-Z, and 0-9.</span>
+<span class="doccomment">/// Sample a `char`, uniformly distributed over all Unicode scalar values,</span>
+<span class="doccomment">/// i.e. all code points in the range `0...0x10_FFFF`, except for the range</span>
+<span class="doccomment">/// `0xD800...0xDFFF` (the surrogate code points).  This includes</span>
+<span class="doccomment">/// unassigned/reserved code points.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsciiWordChar</span>;
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Codepoint</span>;
+
+<span class="doccomment">/// Sample a `char`, uniformly distributed over ASCII letters and numbers:</span>
+<span class="doccomment">/// a-z, A-Z and 0-9.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Alphanumeric</span>;
 
 
 <span class="comment">// ----- actual implementations -----</span>
 
 <span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span> {
     <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">isize</span> {
-        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">4</span> {
-            <span class="ident">i32</span>::<span class="ident">rand</span>(<span class="ident">rng</span>, <span class="ident">Uniform</span>) <span class="kw">as</span> <span class="ident">isize</span>
+        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span>() <span class="op">&lt;=</span> <span class="number">4</span> {
+            <span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="kw">as</span> <span class="ident">isize</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">8</span> {
+            <span class="ident">rng</span>.<span class="ident">next_u64</span>() <span class="kw">as</span> <span class="ident">isize</span>
         } <span class="kw">else</span> {
-            <span class="ident">i64</span>::<span class="ident">rand</span>(<span class="ident">rng</span>, <span class="ident">Uniform</span>) <span class="kw">as</span> <span class="ident">isize</span>
+            <span class="macro">unreachable</span><span class="macro">!</span>()
         }
     }
 }
@@ -505,10 +460,12 @@
 <span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">4</span> {
-            <span class="ident">u32</span>::<span class="ident">rand</span>(<span class="ident">rng</span>, <span class="ident">Uniform</span>) <span class="kw">as</span> <span class="ident">usize</span>
+        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">&lt;=</span> <span class="number">4</span> {
+            <span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="kw">as</span> <span class="ident">usize</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">8</span> {
+            <span class="ident">rng</span>.<span class="ident">next_u64</span>() <span class="kw">as</span> <span class="ident">usize</span>
         } <span class="kw">else</span> {
-            <span class="ident">u64</span>::<span class="ident">rand</span>(<span class="ident">rng</span>, <span class="ident">Uniform</span>) <span class="kw">as</span> <span class="ident">usize</span>
+            <span class="macro">unreachable</span><span class="macro">!</span>()
         }
     }
 }
@@ -552,7 +509,11 @@
 <span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span>
+        <span class="comment">// We can compare against an arbitrary bit of an u32 to get a bool.</span>
+        <span class="comment">// Because the least significant bits of a lower quality RNG can have</span>
+        <span class="comment">// simple patterns, we compare against the most significant bit. This is</span>
+        <span class="comment">// easiest done using a sign test.</span>
+        (<span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span> <span class="number">0</span>
     }
 }
 
@@ -602,60 +563,81 @@
 <span class="macro">float_impls</span><span class="macro">!</span> { <span class="ident">f64</span>, <span class="ident">Rng</span>::<span class="ident">next_u64</span> }
 
 
-<span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AsciiWordChar</span> {
+<span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Codepoint</span> {
     <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">char</span> {
-        <span class="ident">ascii_word_char</span>(<span class="ident">rng</span>)
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">Range</span>::<span class="ident">new</span>(<span class="number">0u32</span>, <span class="number">0x11_0000</span>);
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> <span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">range</span>.<span class="ident">sample</span>(<span class="ident">rng</span>)) {
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">c</span>,
+                <span class="comment">// About 0.2% of numbers in the range 0..0x110000 are invalid</span>
+                <span class="comment">// codepoints (surrogates).</span>
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {}
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Alphanumeric</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">+</span><span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">char</span> {
+        <span class="kw">const</span> <span class="ident">RANGE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">26</span> <span class="op">+</span> <span class="number">26</span> <span class="op">+</span> <span class="number">10</span>;
+        <span class="kw">const</span> <span class="ident">GEN_ASCII_STR_CHARSET</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span>
+            <span class="string">b&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                abcdefghijklmnopqrstuvwxyz\
+                0123456789&quot;</span>;
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">var</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>() <span class="op">&gt;&gt;</span> <span class="number">26</span>;
+            <span class="kw">if</span> <span class="ident">var</span> <span class="op">&lt;</span> <span class="ident">RANGE</span> {
+                <span class="kw">return</span> <span class="ident">GEN_ASCII_STR_CHARSET</span>[<span class="ident">var</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="kw">as</span> <span class="ident">char</span>
+            }
+        }
     }
 }
 
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> {<span class="ident">thread_rng</span>, <span class="ident">iter</span>};
-    <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Rand</span>, <span class="ident">uniform</span>, <span class="ident">Uniform</span>, <span class="ident">Uniform01</span>, <span class="ident">Open01</span>, <span class="ident">Closed01</span>};
-    <span class="kw">use</span> <span class="ident">distributions</span>::<span class="ident">uniform</span>::{<span class="ident">codepoint</span>, <span class="ident">ascii_word_char</span>};
+    <span class="kw">use</span> {<span class="ident">Sample</span>, <span class="ident">thread_rng</span>, <span class="ident">iter</span>};
+    <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Uniform</span>, <span class="ident">Uniform01</span>, <span class="ident">Open01</span>, <span class="ident">Closed01</span>,
+            <span class="ident">Codepoint</span>, <span class="ident">Alphanumeric</span>};
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_integers</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> ::<span class="ident">test</span>::<span class="ident">rng</span>();
         
-        <span class="kw">let</span> _: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">Rand</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Uniform</span>);
-        <span class="kw">let</span> _ <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Uniform</span>);
-        
-        <span class="kw">let</span> _: <span class="ident">isize</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">i8</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">i16</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">isize</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i8</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i16</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i64</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
-        <span class="kw">let</span> _: <span class="ident">i128</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i128</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
         
-        <span class="kw">let</span> _: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> _: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">usize</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">u8</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">u16</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">u32</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">u64</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
-        <span class="kw">let</span> _: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">u128</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
     }
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_chars</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> ::<span class="ident">test</span>::<span class="ident">rng</span>();
         
-        <span class="kw">let</span> _ <span class="op">=</span> <span class="ident">codepoint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">ascii_word_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> _ <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Codepoint</span>);
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Alphanumeric</span>);
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;9&#39;</span>) <span class="op">||</span> (<span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;A&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;Z&#39;</span>) <span class="op">||</span> (<span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;a&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;z&#39;</span>));
         
-        <span class="kw">let</span> <span class="ident">word</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>).<span class="ident">take</span>(<span class="number">5</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <span class="ident">ascii_word_char</span>(<span class="ident">rng</span>)).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">word</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>).<span class="ident">take</span>(<span class="number">5</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Alphanumeric</span>)).<span class="ident">collect</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">word</span>.<span class="ident">len</span>(), <span class="number">5</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_f64</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
-        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">Rand</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="ident">Uniform01</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="ident">Uniform01</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
+        <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform01</span>);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">f64</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform01</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;=</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&lt;</span> <span class="number">1.0</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="number">1.0</span>);
     }
@@ -667,10 +649,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
         <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">1_000</span> {
             <span class="comment">// strict inequalities</span>
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Open01</span>);
+            <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Open01</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;</span> <span class="ident">f</span> <span class="op">&amp;&amp;</span> <span class="ident">f</span> <span class="op">&lt;</span> <span class="number">1.0</span>);
 
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">f32</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Open01</span>);
+            <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Open01</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;</span> <span class="ident">f</span> <span class="op">&amp;&amp;</span> <span class="ident">f</span> <span class="op">&lt;</span> <span class="number">1.0</span>);
         }
     }
@@ -680,10 +662,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
         <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">1_000</span> {
             <span class="comment">// strict inequalities</span>
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Closed01</span>);
+            <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Closed01</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;=</span> <span class="ident">f</span> <span class="op">&amp;&amp;</span> <span class="ident">f</span> <span class="op">&lt;=</span> <span class="number">1.0</span>);
 
-            <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">f32</span>::<span class="ident">rand</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>, <span class="ident">Closed01</span>);
+            <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Closed01</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.0</span> <span class="op">&lt;=</span> <span class="ident">f</span> <span class="op">&amp;&amp;</span> <span class="ident">f</span> <span class="op">&lt;=</span> <span class="number">1.0</span>);
         }
     }
@@ -706,13 +688,15 @@
                     <dd>Show this help dialog</dd>
                     <dt>S</dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt>↑</dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt>↓</dt>
                     <dd>Move down in search results</dd>
+                    <dt>↹</dt>
+                    <dd>Switch tab</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
+                    <dt style="width:31px;">+ / -</dt>
                     <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>

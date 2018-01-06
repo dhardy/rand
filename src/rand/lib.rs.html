@@ -601,8 +601,66 @@
 <span id="556">556</span>
 <span id="557">557</span>
 <span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
 </pre><pre class="rust ">
-<span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT</span>
+<span class="comment">// Copyright 2013-2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
 <span class="comment">//</span>
@@ -690,10 +748,10 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use rand::thread_rng;</span>
-<span class="doccomment">//! use rand::distributions::{Rand, Uniform, Uniform01};</span>
+<span class="doccomment">//! use rand::{Sample, thread_rng};</span>
+<span class="doccomment">//! use rand::distributions::{Uniform, Uniform01};</span>
 <span class="doccomment">//! let mut rng = thread_rng();</span>
-<span class="doccomment">//! let tuple = (f64::rand(&amp;mut rng, Uniform01), u8::rand(&amp;mut rng, Uniform));</span>
+<span class="doccomment">//! let tuple: (f64, u8) = (rng.sample(Uniform01), rng.sample(Uniform));</span>
 <span class="doccomment">//! println!(&quot;{:?}&quot;, tuple)</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -715,18 +773,19 @@
 <span class="doccomment">//! and multiply this fraction by 4.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! use rand::distributions::{Rand, Range};</span>
+<span class="doccomment">//! use rand::{thread_rng, Sample};</span>
+<span class="doccomment">//! use rand::distributions::{Range};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!    let between = Range::new(-1f64, 1.);</span>
-<span class="doccomment">//!    let mut rng = rand::thread_rng();</span>
+<span class="doccomment">//!    let mut rng = thread_rng();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!    let total = 1_000_000;</span>
 <span class="doccomment">//!    let mut in_circle = 0;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!    for _ in 0..total {</span>
-<span class="doccomment">//!        let a = f64::rand(&amp;mut rng, between);</span>
-<span class="doccomment">//!        let b = f64::rand(&amp;mut rng, between);</span>
+<span class="doccomment">//!        let a = rng.sample(between);</span>
+<span class="doccomment">//!        let b = rng.sample(between);</span>
 <span class="doccomment">//!        if a*a + b*b &lt;= 1. {</span>
 <span class="doccomment">//!            in_circle += 1;</span>
 <span class="doccomment">//!        }</span>
@@ -757,8 +816,8 @@
 <span class="doccomment">//! [Monty Hall Problem]: http://en.wikipedia.org/wiki/Monty_Hall_problem</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! use rand::Rng;</span>
-<span class="doccomment">//! use rand::distributions::{Distribution, Range, uniform};</span>
+<span class="doccomment">//! use rand::{Rng, Sample};</span>
+<span class="doccomment">//! use rand::distributions::{Distribution, Range};</span>
 <span class="doccomment">//! use rand::distributions::range::RangeInt;</span>
 <span class="doccomment">//! use rand::sequences::Choose;</span>
 <span class="doccomment">//!</span>
@@ -779,7 +838,7 @@
 <span class="doccomment">//!     let open = game_host_open(car, choice, rng);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     // Shall we switch?</span>
-<span class="doccomment">//!     let switch = uniform(rng);</span>
+<span class="doccomment">//!     let switch = rng.gen();</span>
 <span class="doccomment">//!     if switch {</span>
 <span class="doccomment">//!         choice = switch_door(choice, open);</span>
 <span class="doccomment">//!     }</span>
@@ -844,45 +903,70 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 
-<span class="attribute">#<span class="op">!</span>[<span class="ident">doc</span>(<span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk.png&quot;</span>,
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk.png&quot;</span>,
        <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/favicon.ico&quot;</span>,
        <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/rand/0.3&quot;</span>)]</span>
 
-<span class="attribute">#<span class="op">!</span>[<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 
-<span class="attribute">#<span class="op">!</span>[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#<span class="op">!</span>[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>, <span class="ident">feature</span>(<span class="ident">i128_type</span>, <span class="ident">i128</span>))]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;alloc&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)), <span class="ident">feature</span>(<span class="ident">alloc</span>))]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>, <span class="ident">feature</span>(<span class="ident">i128_type</span>, <span class="ident">i128</span>))]</span>
 
-<span class="comment">// We need to use several items from &quot;core&quot; for no_std support.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">core</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span> <span class="kw">as</span> <span class="ident">core</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)))]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rand_core</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">Rng</span>, <span class="ident">CryptoRng</span>, <span class="ident">SeedFromRng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
+<span class="comment">// core traits and types</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">Rng</span>, <span class="ident">CryptoRng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">read</span>::<span class="ident">ReadRng</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">os</span>::<span class="ident">OsRng</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jitter_rng</span>::<span class="ident">JitterRng</span>;
+<span class="comment">// external rngs</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jitter</span>::<span class="ident">JitterRng</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span> <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">read</span>::<span class="ident">ReadRng</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span> <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">os</span>::<span class="ident">OsRng</span>;
+
+<span class="comment">// extensions</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iter</span>::<span class="ident">iter</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Distribution</span>, <span class="ident">Default</span>, <span class="ident">Rand</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">thread_local</span>::{<span class="ident">ThreadRng</span>, <span class="ident">thread_rng</span>, <span class="ident">random</span>, <span class="ident">random_with</span>};
 
+<span class="comment">// local use declarations</span>
 <span class="kw">use</span> <span class="ident">prng</span>::<span class="ident">IsaacWordRng</span>;
 <span class="kw">use</span> <span class="ident">distributions</span>::<span class="ident">range</span>::<span class="ident">Range</span>;
 
+<span class="comment">// macro: copied from `arrayref` crate</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">array_ref</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">offset</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
+        {
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">T</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>] {
+                <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">slice</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [_; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>])
+            }
+            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">offset</span>;
+            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arr</span>[<span class="ident">offset</span>..<span class="ident">offset</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>];
+            <span class="kw">unsafe</span> {
+                <span class="ident">as_array</span>(<span class="ident">slice</span>)
+            }
+        }
+    }}
+}
+
+<span class="comment">// public modules</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">distributions</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iter</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">jitter_rng</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">jitter</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prng</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reseeding</span>;
+<span class="comment">// TODO: move sequences code to seq maybe?</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">seq</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sequences</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
 
+<span class="comment">// private modules</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">os</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
@@ -890,24 +974,56 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">thread_local</span>;
 
-<span class="doccomment">/// Support mechanism for creating securely seeded objects </span>
-<span class="doccomment">/// using the OS generator.</span>
-<span class="doccomment">/// Intended for use by RNGs, but not restricted to these.</span>
+
+<span class="doccomment">/// Seeding mechanism for PRNGs, providing a `new` function.</span>
+<span class="doccomment">/// This is the recommended way to create (pseudo) random number generators,</span>
+<span class="doccomment">/// unless a deterministic seed is desired (in which case</span>
+<span class="doccomment">/// `SeedableRng::from_seed` should be used).</span>
 <span class="doccomment">/// </span>
-<span class="doccomment">/// This is implemented automatically for any PRNG implementing `SeedFromRng`,</span>
-<span class="doccomment">/// and for normal types shouldn&#39;t be implemented directly. For mock generators</span>
-<span class="doccomment">/// it may be useful to implement this instead of `SeedFromRng`.</span>
+<span class="doccomment">/// Note: this trait is automatically implemented for any PRNG implementing</span>
+<span class="doccomment">/// `SeedableRng` and is not intended to be implemented by users.</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// ## Example</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use rand::{StdRng, Sample, NewSeeded};</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// let mut rng = StdRng::new().unwrap();</span>
+<span class="doccomment">/// println!(&quot;Random die roll: {}&quot;, rng.gen_range(1, 7));</span>
+<span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NewSeeded</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// Creates a new instance, automatically seeded via `OsRng`.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NewSeeded</span>: <span class="ident">SeedableRng</span> {
+    <span class="doccomment">/// Creates a new instance, automatically seeded with fresh entropy.</span>
+    <span class="doccomment">/// </span>
+    <span class="doccomment">/// Normally this will use `OsRng`, but if that fails `JitterRng` will be</span>
+    <span class="doccomment">/// used instead. Both should be suitable for cryptography. It is possible</span>
+    <span class="doccomment">/// that both entropy sources will fail though unlikely.</span>
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">SeedFromRng</span><span class="op">&gt;</span> <span class="ident">NewSeeded</span> <span class="kw">for</span> <span class="ident">R</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">SeedableRng</span><span class="op">&gt;</span> <span class="ident">NewSeeded</span> <span class="kw">for</span> <span class="ident">R</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">OsRng</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-        <span class="self">Self</span>::<span class="ident">from_rng</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)
+        <span class="comment">// Note: error handling would be easier with try/catch blocks</span>
+        <span class="kw">fn</span> <span class="ident">new_os</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SeedableRng</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">OsRng</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+            <span class="ident">T</span>::<span class="ident">from_rng</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)
+        }
+        <span class="kw">fn</span> <span class="ident">new_jitter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SeedableRng</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">JitterRng</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+            <span class="ident">T</span>::<span class="ident">from_rng</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)
+        }
+        
+        <span class="ident">new_os</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">e1</span><span class="op">|</span> {
+            <span class="ident">new_jitter</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e2</span><span class="op">|</span> {
+                <span class="comment">// TODO: log</span>
+                <span class="comment">// TODO: can we somehow return both error sources?</span>
+                <span class="ident">Error</span>::<span class="ident">with_cause</span>(
+                    <span class="ident">ErrorKind</span>::<span class="ident">Unavailable</span>,
+                    <span class="string">&quot;seeding a new RNG failed: both OS and Jitter entropy sources failed&quot;</span>,
+                    <span class="ident">e1</span>)
+            })
+        })
     }
 }
 
@@ -975,8 +1091,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">gen_range</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SampleRange</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">low</span>: <span class="ident">T</span>, <span class="ident">high</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span> <span class="ident">high</span>, <span class="string">&quot;Sample::gen_range called with low &gt;= high&quot;</span>);
-        <span class="ident">Range</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">sample</span>(<span class="self">self</span>)
+        <span class="ident">Range</span>::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="self">self</span>)
     }
     
     <span class="doccomment">/// Construct an iterator on an `Rng`.</span>
@@ -985,10 +1100,10 @@
     <span class="doccomment">/// </span>
     <span class="doccomment">/// ```rust</span>
     <span class="doccomment">/// use rand::{thread_rng, Sample};</span>
-    <span class="doccomment">/// use rand::distributions::AsciiWordChar;</span>
+    <span class="doccomment">/// use rand::distributions::Alphanumeric;</span>
     <span class="doccomment">/// </span>
     <span class="doccomment">/// let mut rng = thread_rng();</span>
-    <span class="doccomment">/// let x: String = rng.iter().map(|rng| rng.sample(AsciiWordChar)).take(6).collect();</span>
+    <span class="doccomment">/// let x: String = rng.iter().map(|rng| rng.sample(Alphanumeric)).take(6).collect();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">iter</span>::<span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">iter</span>(<span class="self">self</span>)
@@ -1008,32 +1123,34 @@
 <span class="doccomment">/// cannot be guaranteed to be reproducible. For this reason, `StdRng` does</span>
 <span class="doccomment">/// not support `SeedableRng`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StdRng</span> {
-    <span class="ident">rng</span>: <span class="ident">IsaacWordRng</span>,
-}
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StdRng</span>(<span class="ident">IsaacWordRng</span>);
 
 <span class="kw">impl</span> <span class="ident">Rng</span> <span class="kw">for</span> <span class="ident">StdRng</span> {
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">next_u32</span>()
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next_u32</span>()
     }
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">next_u64</span>()
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next_u64</span>()
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u128</span> {
-        <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">next_u128</span>()
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">next_u128</span>()
     }
     <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">fill_bytes</span>(<span class="ident">dest</span>);
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">fill_bytes</span>(<span class="ident">dest</span>);
     }
     <span class="kw">fn</span> <span class="ident">try_fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">try_fill</span>(<span class="ident">dest</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">try_fill</span>(<span class="ident">dest</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">SeedFromRng</span> <span class="kw">for</span> <span class="ident">StdRng</span> {
-    <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">&gt;</span>(<span class="ident">other</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">IsaacWordRng</span>::<span class="ident">from_rng</span>(<span class="ident">other</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <span class="ident">StdRng</span>{ <span class="ident">rng</span> })
+<span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">StdRng</span> {
+    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">IsaacWordRng</span> <span class="kw">as</span> <span class="ident">SeedableRng</span><span class="op">&gt;</span>::<span class="ident">Seed</span>;
+    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">StdRng</span>(<span class="ident">IsaacWordRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>))
+    }
+    <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="ident">IsaacWordRng</span>::<span class="ident">from_rng</span>(<span class="ident">rng</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> <span class="ident">StdRng</span>(<span class="ident">rng</span>))
     }
 }
 
@@ -1041,8 +1158,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">thread_rng</span>, <span class="ident">Sample</span>, <span class="ident">Error</span>};
-    <span class="kw">use</span> <span class="ident">mock</span>::<span class="ident">MockAddRng</span>;
-    <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">uniform</span>};
+    <span class="kw">use</span> <span class="ident">mock</span>::<span class="ident">MockAddRng</span>;   
     <span class="kw">use</span> <span class="ident">distributions</span>::{<span class="ident">Uniform</span>, <span class="ident">Range</span>, <span class="ident">Exp</span>};
     <span class="kw">use</span> <span class="ident">sequences</span>::<span class="ident">Shuffle</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">repeat</span>;
@@ -1113,7 +1229,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_thread_rng</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
-        <span class="ident">uniform</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>);
+        <span class="ident">r</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
         <span class="ident">v</span>.<span class="ident">shuffle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>);
         <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
@@ -1127,7 +1243,7 @@
         {
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Rng</span>;
             <span class="ident">r</span>.<span class="ident">next_u32</span>();
-            <span class="ident">uniform</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="ident">r</span>);
+            <span class="ident">r</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
             <span class="ident">v</span>[..].<span class="ident">shuffle</span>(<span class="ident">r</span>);
             <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
@@ -1137,7 +1253,7 @@
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">rng</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Rng</span><span class="op">&gt;</span>;
             <span class="ident">r</span>.<span class="ident">next_u32</span>();
-            <span class="ident">uniform</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>);
+            <span class="ident">r</span>.<span class="ident">sample</span>::<span class="op">&lt;</span><span class="ident">i32</span>, _<span class="op">&gt;</span>(<span class="ident">Uniform</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
             <span class="ident">v</span>[..].<span class="ident">shuffle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">r</span>);
             <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[_] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>];
@@ -1178,13 +1294,15 @@
                     <dd>Show this help dialog</dd>
                     <dt>S</dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt>↑</dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt>↓</dt>
                     <dd>Move down in search results</dd>
+                    <dt>↹</dt>
+                    <dd>Switch tab</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
+                    <dt style="width:31px;">+ / -</dt>
                     <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>

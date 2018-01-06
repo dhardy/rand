@@ -416,6 +416,7 @@
 <span id="371">371</span>
 <span id="372">372</span>
 <span id="373">373</span>
+<span id="374">374</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -429,7 +430,7 @@
 
 <span class="doccomment">//! A collection of utility functions</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! This module exposes some utility functions used internally by the `Rand`</span>
+<span class="doccomment">//! This module exposes some utility functions used internally by the `rand`</span>
 <span class="doccomment">//! crate. They are not the intended or most ergonomic way to use the library.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `FloatConversions` trait provides the building blocks to convert a</span>
@@ -690,7 +691,8 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FloatConversions</span>;
-    <span class="kw">use</span> <span class="ident">distributions</span>::<span class="ident">uniform</span>;
+    <span class="kw">use</span> <span class="ident">Sample</span>;
+    <span class="kw">use</span> <span class="ident">distributions</span>::<span class="ident">Uniform</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">closed_open01_edge_cases</span>() {
@@ -734,14 +736,14 @@
         <span class="comment">// These constants happen to generate the lowest and highest floats in</span>
         <span class="comment">// the range.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> ::<span class="ident">test</span>::<span class="ident">rng</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x1ff</span>; <span class="comment">// 9 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">closed_open01_fixed</span>() <span class="op">==</span> <span class="number">0.0</span>);
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0xfffffe00</span>).<span class="ident">closed_open01_fixed</span>()
                 <span class="op">==</span> <span class="number">0.9999999</span>); <span class="comment">// 1 - 2^-23</span>
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfff</span>; <span class="comment">// 12 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">closed_open01_fixed</span>() <span class="op">==</span> <span class="number">0.0</span>);
@@ -755,13 +757,13 @@
         <span class="comment">// These constants happen to generate the lowest and highest floats in</span>
         <span class="comment">// the range.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> ::<span class="ident">test</span>::<span class="ident">rng</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x1ff</span>; <span class="comment">// 9 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">open_closed01_fixed</span>() <span class="op">==</span> <span class="number">1.1920929e-7</span>); <span class="comment">// 2^-23</span>
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0xfffffe00</span>).<span class="ident">open_closed01_fixed</span>() <span class="op">==</span> <span class="number">1.0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfff</span>; <span class="comment">// 12 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">open_closed01_fixed</span>() <span class="op">==</span>
@@ -775,14 +777,14 @@
         <span class="comment">// These constants happen to generate the lowest and highest floats in</span>
         <span class="comment">// the range.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> ::<span class="ident">test</span>::<span class="ident">rng</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x1ff</span>; <span class="comment">// 9 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">closed_open11_fixed</span>() <span class="op">==</span> <span class="op">-</span><span class="number">1.0</span>);
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0xfffffe00</span>).<span class="ident">closed_open11_fixed</span>()
                 <span class="op">==</span> <span class="number">0.99999976</span>); <span class="comment">// 1 - 2^-22</span>
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">uniform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Uniform</span>);
         <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfff</span>; <span class="comment">// 12 bits with no influence</span>
 
         <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">bits</span> <span class="op">|</span> <span class="number">0</span>).<span class="ident">closed_open11_fixed</span>() <span class="op">==</span> <span class="op">-</span><span class="number">1.0</span>);
@@ -808,13 +810,15 @@
                     <dd>Show this help dialog</dd>
                     <dt>S</dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt>↑</dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt>↓</dt>
                     <dd>Move down in search results</dd>
+                    <dt>↹</dt>
+                    <dd>Switch tab</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
+                    <dt style="width:31px;">+ / -</dt>
                     <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
