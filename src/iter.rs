@@ -157,10 +157,12 @@ impl<'a, R:?Sized+'a, U, F> Iterator for FlatMap<'a, R, U, F>
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, any(features="std", features="alloc")))]
 mod tests {
     use {Rng, Sample, thread_rng, iter};
     use distributions::{Uniform, Alphanumeric};
+    #[cfg(features="alloc")]
+    use alloc::{Vec, String};
     
     #[test]
     fn test_iter() {

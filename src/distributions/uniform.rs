@@ -237,9 +237,10 @@ impl Distribution<char> for Alphanumeric {
 
 #[cfg(test)]
 mod tests {
-    use {Sample, thread_rng, iter};
-    use distributions::{Uniform, Uniform01, Open01, Closed01,
-            Codepoint, Alphanumeric};
+    use Sample;
+    use distributions::{Uniform, Uniform01, Open01, Closed01};
+    #[cfg(features="alloc")]
+    use alloc::String;
     
     #[test]
     fn test_integers() {
@@ -262,8 +263,11 @@ mod tests {
         rng.sample::<u128, _>(Uniform);
     }
     
+    #[cfg(any(features="std", features="alloc"))]
     #[test]
     fn test_chars() {
+        use iter;
+        use distributions::{Codepoint, Alphanumeric};
         let mut rng = ::test::rng(805);
         
         let _ = rng.sample(Codepoint);
@@ -276,7 +280,7 @@ mod tests {
 
     #[test]
     fn test_f64() {
-        let mut rng = thread_rng();
+        let mut rng = ::test::rng(817);
         let a: f64 = rng.sample(Uniform01);
         let b = rng.sample::<f64, _>(Uniform01);
         assert!(0.0 <= a && a < 1.0);
@@ -287,7 +291,7 @@ mod tests {
     fn rand_open() {
         // this is unlikely to catch an incorrect implementation that
         // generates exactly 0 or 1, but it keeps it sane.
-        let mut rng = thread_rng();
+        let mut rng = ::test::rng(818);
         for _ in 0..1_000 {
             // strict inequalities
             let f: f64 = rng.sample(Open01);
@@ -300,7 +304,7 @@ mod tests {
 
     #[test]
     fn rand_closed() {
-        let mut rng = thread_rng();
+        let mut rng = ::test::rng(819);
         for _ in 0..1_000 {
             // strict inequalities
             let f: f64 = rng.sample(Closed01);

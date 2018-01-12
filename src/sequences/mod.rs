@@ -10,6 +10,8 @@
 
 //! Random operations on sequences
 
+#[cfg(not(feature="std"))] use alloc::Vec;
+
 use {Rng, Sample};
 
 #[cfg(feature="std")]
@@ -59,7 +61,7 @@ impl<'a, T> Choose<&'a mut T> for &'a mut [T] {
     }
 }
 
-#[cfg(feature="std")]
+#[cfg(any(feature="std", feature="alloc"))]
 impl<T> Choose<T> for Vec<T> {
     fn choose<R: Rng+?Sized>(mut self, rng: &mut R) -> Option<T> {
         if self.is_empty() {
@@ -106,7 +108,7 @@ impl<'a, T> Shuffle for &'a mut [T] {
     }
 }
 
-#[cfg(feature="std")]
+#[cfg(any(feature="std", feature="alloc"))]
 impl<'a, T> Shuffle for &'a mut Vec<T> {
     fn shuffle<R: Rng+?Sized>(self, rng: &mut R) {
         (self[..]).shuffle(rng)
@@ -115,12 +117,12 @@ impl<'a, T> Shuffle for &'a mut Vec<T> {
 
 #[cfg(test)]
 mod test {
-    use {Rng, thread_rng};
+    use Rng;
     use super::{Choose, Shuffle};
     
     #[test]
     fn test_choose() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(811);
         assert_eq!([1, 1, 1][..].choose(&mut r).map(|&x|x), Some(1));
 
         let v: &[isize] = &[];
@@ -129,7 +131,7 @@ mod test {
 
     #[test]
     fn test_shuffle() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(812);
         let empty: &mut [isize] = &mut [];
         empty.shuffle(&mut r);
         let mut one = [1];
@@ -149,7 +151,7 @@ mod test {
     
     #[test]
     fn dyn_dispatch() {
-        let r: &mut Rng = &mut thread_rng();
+        let r: &mut Rng = &mut ::test::rng(813);
         
         assert_eq!([7, 7][..].choose(r), Some(&7));
         

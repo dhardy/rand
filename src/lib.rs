@@ -495,9 +495,9 @@ impl SeedableRng for StdRng {
 
 #[cfg(test)]
 mod test {
-    use {Rng, thread_rng, Sample, StdRng, Error, SeedableRng};
+    use {Rng, Sample, StdRng, Error, SeedableRng};
     use mock::MockAddRng;   
-    use distributions::{Uniform, Range, Exp};
+    use distributions::{Uniform, Uniform01, Range};
     use sequences::Shuffle;
     #[cfg(feature="alloc")]
     use alloc::boxed::Box;
@@ -582,7 +582,7 @@ mod test {
     #[test]
     #[cfg(feature="std")]
     fn test_thread_rng() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(808);
         r.gen::<i32>();
         let mut v = [1, 1, 1];
         v.shuffle(&mut r);
@@ -620,14 +620,13 @@ mod test {
     #[test]
     fn test_sample_from_rng() {
         // use a static Rng type:
-        let mut rng = thread_rng();
+        let mut rng = ::test::rng(809);
         
         let _a: u32 = rng.sample(Uniform);
         let _b = rng.sample(Range::new(-2, 15));
         
         // use a dynamic Rng type:
-        let rng: &mut Rng = &mut thread_rng();
-        
-        let _c = rng.sample(Exp::new(2.0));
+        let rng: &mut Rng = &mut ::test::rng(810);
+        let _c: f64 = rng.sample(Uniform01);
     }
 }

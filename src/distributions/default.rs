@@ -62,12 +62,12 @@ impl Distribution<char> for Default {
 
 #[cfg(test)]
 mod tests {
-    use {Rng, Sample, thread_rng};
+    use {Rng, Sample};
     use distributions::{Default};
     
     #[test]
     fn test_types() {
-        let rng: &mut Rng = &mut thread_rng();
+        let rng: &mut Rng = &mut ::test::rng(820);
         
         rng.sample::<u32, _>(Default);
         rng.sample::<i8, _>(Default);

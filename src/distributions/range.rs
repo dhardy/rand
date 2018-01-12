@@ -532,13 +532,13 @@ range_float_impl! { f64, Rng::next_u64 }
 
 #[cfg(test)]
 mod tests {
-    use {Rng, Sample, thread_rng};
+    use {Rng, Sample};
     use distributions::{Distribution};
     use distributions::range::{Range, RangeImpl, RangeFloat, SampleRange};
 
     #[test]
     fn test_fn_range() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(814);
         for _ in 0..1000 {
             let a = Range::new(-3, 42).sample(&mut r);
             assert!(a >= -3 && a < 42);
@@ -557,14 +557,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_fn_range_panic_int() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(815);
         Range::new(5, -2).sample(&mut r);
     }
 
     #[test]
     #[should_panic]
     fn test_fn_range_panic_usize() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(816);
         Range::new(5, 2).sample(&mut r);
     }
 
@@ -587,7 +587,7 @@ mod tests {
                 $(
                    let v: &[($ty, $ty)] = &[(0, 10),
                                             (10, 127),
-                                            (::std::$ty::MIN, ::std::$ty::MAX)];
+                                            (::core::$ty::MIN, ::core::$ty::MAX)];
                    for &(low, high) in v.iter() {
                         let my_range = Range::new(low, high);
                         for _ in 0..1000 {

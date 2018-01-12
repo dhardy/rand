@@ -168,12 +168,12 @@ fn ziggurat<R: Rng+?Sized, P, Z>(
 
 #[cfg(test)]
 mod test {
-    use {Rng, thread_rng};
+    use Rng;
     use distributions::{weighted_bool};
 
     #[test]
     fn test_fn_weighted_bool() {
-        let mut r = thread_rng();
+        let mut r = ::test::rng(807);
         assert_eq!(weighted_bool(0, &mut r), true);
         let s: &mut Rng = &mut r;
         assert_eq!(weighted_bool(1, s), true);
