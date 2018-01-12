@@ -64,10 +64,10 @@ impl<R: Rng, Rsdr: Reseeder<R>> ReseedingRng<R, Rsdr> {
         loop {
             if let Err(e) = self.reseeder.reseed(&mut self.rng) {
                 // TODO: log?
-                if e.kind.should_wait() {
+                if e.kind().should_wait() {
                     // Delay reseeding
                     self.bytes_until_reseed = self.threshold >> 8;
-                } else if e.kind.should_retry() {
+                } else if e.kind().should_retry() {
                     err_count += 1;
                     if err_count <= 5 { // arbitrary limit
                         continue; // retry immediately
@@ -88,7 +88,7 @@ impl<R: Rng, Rsdr: Reseeder<R>> ReseedingRng<R, Rsdr> {
     #[inline(never)]
     pub fn try_reseed(&mut self) -> Result<(), Error> {
         if let Err(err) = self.reseeder.reseed(&mut self.rng) {
-            let newkind = match err.kind {
+            let newkind = match err.kind() {
                 a @ ErrorKind::NotReady => a,
                 b @ ErrorKind::Transient => b,
                 _ => {

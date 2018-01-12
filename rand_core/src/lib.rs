@@ -328,7 +328,7 @@ impl ErrorKind {
 #[derive(Debug)]
 pub struct Error {
     /// Error kind. This enum is included to aid handling of errors.
-    pub kind: ErrorKind,
+    kind: ErrorKind,
     msg: &'static str,
     #[cfg(feature="std")]
     cause: Option<Box<stdError + Send + Sync>>,
@@ -366,6 +366,11 @@ impl Error {
     #[cfg(not(feature="std"))]
     pub fn with_cause<E>(kind: ErrorKind, msg: &'static str, _cause: E) -> Self {
         Self { kind, msg }
+    }
+    
+    /// Get the error kind
+    pub fn kind(&self) -> ErrorKind {
+        self.kind
     }
     
     /// Get the error message
