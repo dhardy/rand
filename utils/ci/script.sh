@@ -2,8 +2,9 @@
 
 set -ex
 
-# TODO This is the "test phase", tweak it as you see fit
 main() {
+    # TODO: tweak what builds/tests we do where
+    
     cross build --all --no-default-features --target $TARGET --release
     if [ ! -z $DISABLE_STD ]; then
         return
@@ -18,10 +19,12 @@ main() {
         return
     fi
 
+    cross test --tests --no-default-features --target $TARGET
     cross test --all --target $TARGET
 
     if [ ! -z $NIGHTLY ]; then
         cross test --all --features nightly --target $TARGET
+        cross test --tests --no-default-features --features=alloc --target $TARGET
         cross test --all --benches --target $TARGET
     fi
 }

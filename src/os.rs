@@ -1,10 +1,10 @@
 // Copyright 2013-2015 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -15,7 +15,7 @@ use std::fmt;
 use std::io::Read;
 
 use {Rng, Error, ErrorKind};
-// TODO: replace many of the panics below with Result error handling
+use rand_core::impls;
 
 /// A random number generator that retrieves randomness straight from
 /// the operating system.
@@ -54,26 +54,55 @@ impl OsRng {
 
 impl Rng for OsRng {
     fn next_u32(&mut self) -> u32 {
-        // note: `next_u32_via_fill` does a byte-swap on big-endian
-        // architectures, which is not really needed here
-        ::rand_core::impls::next_u32_via_fill(self)
+        impls::next_u32_via_fill(self)
     }
 
     fn next_u64(&mut self) -> u64 {
-        ::rand_core::impls::next_u64_via_fill(self)
+        impls::next_u64_via_fill(self)
     }
 
     #[cfg(feature = "i128_support")]
     fn next_u128(&mut self) -> u128 {
-        ::rand_core::impls::next_u128_via_fill(self)
+        impls::next_u128_via_fill(self)
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        ::rand_core::impls::fill_via_try_fill(self, dest)
+        // We cannot return Err(..), so we try to handle before panicking.
+        const WAIT_DUR_MS: u32 = 100;   // retry every 100ms
+        const MAX_WAIT: u32 = (10 * 1000) / WAIT_DUR_MS;    // max 10s
+        const TRANSIENT_STEP: u32 = MAX_WAIT / 8;
+        let mut err_count = 0;
+        
+        loop {
+            if let Err(e) = self.try_fill_bytes(dest) {
+                // TODO: add logging to explain why we wait and the full cause
+                if e.kind().should_retry() {
+                    if err_count > MAX_WAIT {
+                        panic!("Too many RNG errors or timeout; last error: {}", e.msg());
+                    }
+                    
+                    if e.kind().should_wait() {
+                        #[cfg(feature="std")]{
+                            let dur = ::std::time::Duration::from_millis(WAIT_DUR_MS as u64);
+                            ::std::thread::sleep(dur);
+                        }
+                        err_count += 1;
+                    } else {
+                        err_count += TRANSIENT_STEP;
+                    }
+                    
+                    continue;
+                }
+                
+                panic!("Fatal RNG error: {}", e.msg());
+            }
+            
+            break;
+        }
     }
 
-    fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
-        self.0.try_fill(v)
+    fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        self.0.try_fill_bytes(v)
     }
 }
 
@@ -83,7 +112,7 @@ struct ReadRng<R> (R);
 
 impl<R: Read> ReadRng<R> {
     #[allow(unused)]    // not used by all targets
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
         if dest.len() == 0 { return Ok(()); }
         // Use `std::io::read_exact`, which retries on `ErrorKind::Interrupted`.
         self.0.read_exact(dest).map_err(|err| {
@@ -92,10 +121,12 @@ impl<R: Read> ReadRng<R> {
     }
 }
 
-#[cfg(all(unix, not(target_os = "ios"),
-          not(target_os = "nacl"),
+#[cfg(all(unix,
+          not(target_os = "cloudabi"),
           not(target_os = "freebsd"),
           not(target_os = "fuchsia"),
+          not(target_os = "ios"),
+          not(target_os = "nacl"),
           not(target_os = "openbsd"),
           not(target_os = "redox")))]
 mod imp {
@@ -235,10 +266,37 @@ mod imp {
             Ok(OsRng { inner: OsReadRng(reader_rng) })
         }
         
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             match self.inner {
                 OsGetrandomRng => getrandom_try_fill(v),
-                OsReadRng(ref mut rng) => rng.try_fill(v)
+                OsReadRng(ref mut rng) => rng.try_fill_bytes(v)
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "cloudabi")]
+mod imp {
+    extern crate cloudabi;
+
+    use {Error, ErrorKind};
+
+    #[derive(Debug)]
+    pub struct OsRng;
+
+    impl OsRng {
+        pub fn new() -> Result<OsRng, Error> {
+            Ok(OsRng)
+        }
+
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
+            if unsafe { cloudabi::random_get(v) } == cloudabi::errno::SUCCESS {
+                Ok(())
+            } else {
+                Err(Error::new(
+                    ErrorKind::Unavailable,
+                    "random_get() system call failed",
+                ))
             }
         }
     }
@@ -271,7 +329,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             let ret = unsafe {
                 SecRandomCopyBytes(kSecRandomDefault, v.len() as size_t, v.as_mut_ptr())
             };
@@ -302,7 +360,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             let mib = [libc::CTL_KERN, libc::KERN_ARND];
             // kern.arandom permits a maximum buffer size of 256 bytes
             for s in v.chunks_mut(256) {
@@ -313,8 +371,6 @@ mod imp {
                                  ptr::null(), 0)
                 };
                 if ret == -1 || s_len != s.len() {
-                    // Old format string:
-                    // "kern.arandom sysctl failed! (returned {}, s.len() {}, oldlenp {})"
                     return Err(Error::new(
                         ErrorKind::Unavailable,
                         "kern.arandom sysctl failed"));
@@ -340,7 +396,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             // getentropy(2) permits a maximum buffer size of 256 bytes
             for s in v.chunks_mut(256) {
                 let ret = unsafe {
@@ -380,8 +436,8 @@ mod imp {
 
             Ok(OsRng { inner: reader_rng })
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
-            self.inner.try_fill(v)
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
+            self.inner.try_fill_bytes(v)
         }
     }
 }
@@ -401,7 +457,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             for s in v.chunks_mut(fuchsia_zircon::sys::ZX_CPRNG_DRAW_MAX_LEN) {
                 let mut filled = 0;
                 while filled < s.len() {
@@ -440,7 +496,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Ok(OsRng)
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             // RtlGenRandom takes an ULONG (u32) for the length so we need to
             // split up the buffer.
             for slice in v.chunks_mut(<ULONG>::max_value() as usize) {
@@ -471,7 +527,7 @@ mod imp {
         pub fn new() -> Result<OsRng, Error> {
             Err(Error::new(ErrorKind::Unavailable, "not supported on WASM"))
         }
-        pub fn try_fill(&mut self, v: &mut [u8]) -> Result<(), Error> {
+        pub fn try_fill_bytes(&mut self, v: &mut [u8]) -> Result<(), Error> {
             Err(Error::new(ErrorKind::Unavailable, "not supported on WASM"))
         }
     }

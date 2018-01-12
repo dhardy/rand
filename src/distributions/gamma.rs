@@ -1,10 +1,10 @@
 // Copyright 2013 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 //
@@ -48,7 +48,7 @@ use distributions::{Distribution, Exp, Open01};
 /// [1]: George Marsaglia and Wai Wan Tsang. 2000. "A Simple Method
 /// for Generating Gamma Variables" *ACM Trans. Math. Softw.* 26, 3
 /// (September 2000),
-/// 363-372. DOI:[10.1145/358407.358414](http://doi.acm.org/10.1145/358407.358414)
+/// 363-372. DOI:[10.1145/358407.358414](https://doi.acm.org/10.1145/358407.358414)
 #[derive(Clone, Copy, Debug)]
 pub struct Gamma {
     repr: GammaRepr,
@@ -316,7 +316,7 @@ mod test {
     #[test]
     fn test_chi_squared_one() {
         let chi = ChiSquared::new(1.0);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(201);
         for _ in 0..1000 {
             chi.sample(&mut rng);
         }
@@ -324,7 +324,7 @@ mod test {
     #[test]
     fn test_chi_squared_small() {
         let chi = ChiSquared::new(0.5);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(202);
         for _ in 0..1000 {
             chi.sample(&mut rng);
         }
@@ -332,7 +332,7 @@ mod test {
     #[test]
     fn test_chi_squared_large() {
         let chi = ChiSquared::new(30.0);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(203);
         for _ in 0..1000 {
             chi.sample(&mut rng);
         }
@@ -346,7 +346,7 @@ mod test {
     #[test]
     fn test_f() {
         let f = FisherF::new(2.0, 32.0);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(204);
         for _ in 0..1000 {
             f.sample(&mut rng);
         }
@@ -355,7 +355,7 @@ mod test {
     #[test]
     fn test_t() {
         let t = StudentT::new(11.0);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(205);
         for _ in 0..1000 {
             t.sample(&mut rng);
         }

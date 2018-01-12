@@ -1,10 +1,10 @@
 // Copyright 2013-2017 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -151,7 +151,7 @@
 //! This program will simulate the game show and with large enough simulation
 //! steps it will indeed confirm that it is better to switch.
 //!
-//! [Monty Hall Problem]: http://en.wikipedia.org/wiki/Monty_Hall_problem
+//! [Monty Hall Problem]: https://en.wikipedia.org/wiki/Monty_Hall_problem
 //!
 //! ```
 //! use rand::{Rng, Sample};
@@ -500,11 +500,13 @@ mod test {
     use distributions::{Uniform, Range, Exp};
     use sequences::Shuffle;
     use std::iter::repeat;
+    #[cfg(feature="alloc")]
+    use alloc::boxed::Box;
 
     #[derive(Debug)]
-    pub struct MyRng<R: ?Sized> { inner: R }
+    pub struct TestRng<R: ?Sized> { inner: R }
 
-    impl<R: Rng+?Sized> Rng for MyRng<R> {
+    impl<R: Rng+?Sized> Rng for TestRng<R> {
         fn next_u32(&mut self) -> u32 {
             self.inner.next_u32()
         }
@@ -523,8 +525,9 @@ mod test {
         }
     }
 
-    pub fn rng() -> MyRng<::ThreadRng> {
-        MyRng { inner: ::thread_rng() }
+    pub fn rng(seed: u64) -> TestRng<StdRng> {
+        let seed = [seed as usize];
+        TestRng { inner: StdRng::from_seed(&seed) }
     }
 
     pub fn iter_eq<I, J>(i: I, j: J) -> bool
@@ -552,8 +555,9 @@ mod test {
         let lengths = [0, 1, 2, 3, 4, 5, 6, 7,
                        80, 81, 82, 83, 84, 85, 86, 87];
         for &n in lengths.iter() {
-            let mut v = repeat(0u8).take(n).collect::<Vec<_>>();
-            r.fill_bytes(&mut v);
+            let mut buffer = [0u8; 87];
+            let mut v = &mut buffer[0..n];
+            r.fill_bytes(v);
 
             // use this to get nicer error messages.
             for (i, &byte) in v.iter().enumerate() {
@@ -565,9 +569,10 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature="std")]
     fn test_thread_rng() {
         let mut r = thread_rng();
-        r.sample::<i32, _>(Uniform);
+        r.gen::<i32>();
         let mut v = [1, 1, 1];
         v.shuffle(&mut r);
         let b: &[_] = &[1, 1, 1];
@@ -576,12 +581,13 @@ mod test {
     }
 
     #[test]
+    #[cfg(any(feature="std", feature="alloc"))]
     fn test_rng_trait_object() {
-        let mut rng = thread_rng();
+        let mut rng = rng(109);
         {
             let r = &mut rng as &mut Rng;
             r.next_u32();
-            r.sample::<i32, _>(Uniform);
+            r.gen::<i32>();
             let mut v = [1, 1, 1];
             v[..].shuffle(r);
             let b: &[_] = &[1, 1, 1];
@@ -591,7 +597,7 @@ mod test {
         {
             let mut r = Box::new(rng) as Box<Rng>;
             r.next_u32();
-            r.sample::<i32, _>(Uniform);
+            r.gen::<i32>();
             let mut v = [1, 1, 1];
             v[..].shuffle(&mut *r);
             let b: &[_] = &[1, 1, 1];

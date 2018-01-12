@@ -1,10 +1,10 @@
 // Copyright 2013 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -23,7 +23,7 @@ use distributions::{ziggurat, ziggurat_tables, Distribution, Uniform01};
 ///
 /// [1]: Jurgen A. Doornik (2005). [*An Improved Ziggurat Method to
 /// Generate Normal Random
-/// Samples*](http://www.doornik.com/research/ziggurat.pdf). Nuffield
+/// Samples*](https://www.doornik.com/research/ziggurat.pdf). Nuffield
 /// College, Oxford
 ///
 /// # Example
@@ -97,7 +97,7 @@ mod test {
     #[test]
     fn test_exp() {
         let exp = Exp::new(10.0);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(221);
         for _ in 0..1000 {
             assert!(exp.sample(&mut rng) >= 0.0);
         }

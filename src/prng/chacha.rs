@@ -1,10 +1,10 @@
 // Copyright 2014 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://www.rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -27,7 +27,7 @@ const CHACHA_ROUNDS: u32 = 20; // Cryptographically secure from 8 upwards as of
 /// the operating system for cases that need high security.
 ///
 /// [1]: D. J. Bernstein, [*ChaCha, a variant of
-/// Salsa20*](http://cr.yp.to/chacha.html)
+/// Salsa20*](https://cr.yp.to/chacha.html)
 #[derive(Clone)]
 pub struct ChaChaRng {
     buffer:  [u32; STATE_WORDS], // Internal buffer of output
@@ -149,7 +149,7 @@ impl ChaChaRng {
     /// counter  counter  counter  counter
     /// ```
     /// [1]: Daniel J. Bernstein. [*Extending the Salsa20
-    /// nonce.*](http://cr.yp.to/papers.html#xsalsa)
+    /// nonce.*](https://cr.yp.to/papers.html#xsalsa)
     fn init(seed: [u32; SEED_WORDS]) -> Self {
         ChaChaRng {
             buffer: [0; STATE_WORDS],
@@ -240,82 +240,82 @@ mod test {
     use super::ChaChaRng;
 
     #[test]
-    fn test_rng_rand_seeded() {
-        // Test that various construction techniques produce a working RNG.
-        /* TODO: from_hashable
-        let mut ra = ChaChaRng::from_hashable("some weak seed");
-        ra.next_u32();
-        */
-        let mut rb = ChaChaRng::from_rng(&mut ::test::rng()).unwrap();
-        rb.next_u32();
-        
+    fn test_chacha_construction() {
         let seed = [0,0,0,0,0,0,0,0,
             1,0,0,0,0,0,0,0,
             2,0,0,0,0,0,0,0,
             3,0,0,0,0,0,0,0];
-        let mut rc = ChaChaRng::from_seed(seed);
-        rc.next_u32();
+        let mut rng1 = ChaChaRng::from_seed(seed);
+        assert_eq!(rng1.next_u32(), 137206642);
+        
+        let mut rng2 = ChaChaRng::from_rng(&mut rng1).unwrap();
+        assert_eq!(rng2.next_u32(), 137206642);
+        
+        // Test that various construction techniques produce a working RNG.
+        /* TODO: from_hashable
+        let mut rng3 = ChaChaRng::from_hashable("some weak seed");
+        assert_eq!(rng3.next_u32(), 123 /*FIXME*/);
+        */
     }
 
     #[test]
-    fn test_rng_true_values() {
+    fn test_chacha_true_values() {
         // Test vectors 1 and 2 from
-        // http://tools.ietf.org/html/draft-nir-cfrg-chacha20-poly1305-04
+        // https://tools.ietf.org/html/draft-nir-cfrg-chacha20-poly1305-04
         let seed = [0u8; 32];
-        let mut ra: ChaChaRng = SeedableRng::from_seed(seed);
+        let mut rng1: ChaChaRng = SeedableRng::from_seed(seed);
 
-        let v = (0..16).map(|_| ra.next_u32()).collect::<Vec<_>>();
-        assert_eq!(v,
-                   vec!(0xade0b876, 0x903df1a0, 0xe56a5d40, 0x28bd8653,
+        let mut results = [0u32; 16];
+        for i in results.iter_mut() { *i = rng1.next_u32(); }
+        let expected = [0xade0b876, 0x903df1a0, 0xe56a5d40, 0x28bd8653,
                         0xb819d2bd, 0x1aed8da0, 0xccef36a8, 0xc70d778b,
                         0x7c5941da, 0x8d485751, 0x3fe02477, 0x374ad8b8,
-                        0xf4b8436a, 0x1ca11815, 0x69b687c3, 0x8665eeb2));
+                        0xf4b8436a, 0x1ca11815, 0x69b687c3, 0x8665eeb2];
+        assert_eq!(results, expected);
 
-        let v = (0..16).map(|_| ra.next_u32()).collect::<Vec<_>>();
-        assert_eq!(v,
-                   vec!(0xbee7079f, 0x7a385155, 0x7c97ba98, 0x0d082d73,
+        for i in results.iter_mut() { *i = rng1.next_u32(); }
+        let expected = [0xbee7079f, 0x7a385155, 0x7c97ba98, 0x0d082d73,
                         0xa0290fcb, 0x6965e348, 0x3e53c612, 0xed7aee32,
                         0x7621b729, 0x434ee69c, 0xb03371d5, 0xd539d874,
-                        0x281fed31, 0x45fb0a51, 0x1f0ae1ac, 0x6f4d794b));
+                        0x281fed31, 0x45fb0a51, 0x1f0ae1ac, 0x6f4d794b];
+        assert_eq!(results, expected);
 
 
         let seed = [0,0,0,0, 1,0,0,0, 2,0,0,0, 3,0,0,0, 4,0,0,0, 5,0,0,0, 6,0,0,0, 7,0,0,0];
-        let mut ra: ChaChaRng = SeedableRng::from_seed(seed);
+        let mut rng2: ChaChaRng = SeedableRng::from_seed(seed);
 
         // Store the 17*i-th 32-bit word,
         // i.e., the i-th word of the i-th 16-word block
-        let mut v : Vec<u32> = Vec::new();
-        for _ in 0..16 {
-            v.push(ra.next_u32());
+        for i in results.iter_mut() {
+            *i = rng2.next_u32();
             for _ in 0..16 {
-                ra.next_u32();
+                rng2.next_u32();
             }
         }
-
-        assert_eq!(v,
-                   vec!(0xf225c81a, 0x6ab1be57, 0x04d42951, 0x70858036,
+        let expected = [0xf225c81a, 0x6ab1be57, 0x04d42951, 0x70858036,
                         0x49884684, 0x64efec72, 0x4be2d186, 0x3615b384,
                         0x11cfa18e, 0xd3c50049, 0x75c775f6, 0x434c6530,
-                        0x2c5bad8f, 0x898881dc, 0x5f1c86d9, 0xc1f8e7f4));
+                        0x2c5bad8f, 0x898881dc, 0x5f1c86d9, 0xc1f8e7f4];
+        assert_eq!(results, expected);
     }
 
     #[test]
-    fn test_rng_true_bytes() {
+    fn test_chacha_true_bytes() {
         let seed = [0u8; 32];
-        let mut ra: ChaChaRng = SeedableRng::from_seed(seed);
-        let mut buf = [0u8; 32];
-        ra.fill_bytes(&mut buf);
+        let mut rng: ChaChaRng = SeedableRng::from_seed(seed);
+        let mut results = [0u8; 32];
+        rng.fill_bytes(&mut results);
         // Same as first values in test_isaac_true_values as bytes in LE order
-        assert_eq!(buf,
-                   [118, 184, 224, 173, 160, 241, 61, 144,
-                    64, 93, 106, 229, 83, 134, 189, 40,
-                    189, 210, 25, 184, 160, 141, 237, 26,
-                    168, 54, 239, 204, 139, 119, 13, 199]);
+        let expected = [118, 184, 224, 173, 160, 241, 61, 144,
+                        64, 93, 106, 229, 83, 134, 189, 40,
+                        189, 210, 25, 184, 160, 141, 237, 26,
+                        168, 54, 239, 204, 139, 119, 13, 199];
+        assert_eq!(results, expected);
     }
-    
+
     #[test]
-    fn test_rng_clone() {
-        let seed = [0u8; 32];
+    fn test_chacha_clone() {
+        let seed: &[_] = &[0,1,2,3,4,5,6,7];
         let mut rng: ChaChaRng = SeedableRng::from_seed(seed);
         let mut clone = rng.clone();
         for _ in 0..16 {

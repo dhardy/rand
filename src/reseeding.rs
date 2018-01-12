@@ -1,10 +1,10 @@
 // Copyright 2013 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -141,8 +141,8 @@ impl<R: Rng, Rsdr: Reseeder<R>> Rng for ReseedingRng<R, Rsdr> {
         }
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.rng.try_fill(dest)?;
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        self.rng.try_fill_bytes(dest)?;
         self.bytes_until_reseed -= dest.len() as i64;
         if self.bytes_until_reseed <= 0 {
             self.try_reseed()?;
@@ -231,19 +231,11 @@ mod test {
     const FILL_BYTES_V_LEN: usize = 13579;
     #[test]
     fn test_rng_fill_bytes() {
-        let mut v = repeat(0u8).take(FILL_BYTES_V_LEN).collect::<Vec<_>>();
-        ::test::rng().fill_bytes(&mut v);
+        let mut v = [0u8; FILL_BYTES_V_LEN];
+        ::test::rng(321).fill_bytes(&mut v);
 
-        // Sanity test: if we've gotten here, `fill_bytes` has not infinitely
-        // recursed.
-        assert_eq!(v.len(), FILL_BYTES_V_LEN);
-
-        // To test that `fill_bytes` actually did something, check that the
-        // average of `v` is not 0.
-        let mut sum = 0.0;
-        for &x in v.iter() {
-            sum += x as f64;
-        }
-        assert!(sum / v.len() as f64 != 0.0);
+        // To test that `fill_bytes` actually did something, check that not all
+        // bytes are zero.
+        assert!(!v.iter().all(|&x| x == 0));
     }
 }

@@ -1,10 +1,10 @@
 // Copyright 2013 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
+// https://rust-lang.org/COPYRIGHT.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
@@ -107,7 +107,7 @@ impl Isaac64Rng {
     pub fn new_unseeded() -> Isaac64Rng {
         Self::new_from_u64(0)
     }
-    
+
     /// Creates an ISAAC-64 random number generator using an u64 as seed.
     /// If `seed == 0` this will produce the same stream of random numbers as
     /// the reference implementation when used unseeded.
@@ -354,7 +354,7 @@ mod test {
         // Test that various construction techniques produce a working RNG.
         /* TODO: from_hashable
         let mut rng1 = Isaac64Rng::from_hashable("some weak seed");
-        rng1.next_u64();
+        assert_eq!(rng1.next_u64(), 123 /*FIXME*/);
         */
 
         let seed = [1,0,0,0, 23,0,0,0, 200,1,0,0, 210,30,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
@@ -366,45 +366,48 @@ mod test {
     }
     
     #[test]
-    fn test_isaac64_true_values() {
+    fn test_isaac64_true_values_64() {
         let seed = [1,0,0,0, 0,0,0,0, 23,0,0,0, 0,0,0,0, 200,1,0,0, 0,0,0,0, 210,30,0,0, 0,0,0,0];
         let mut rng1 = Isaac64Rng::from_seed(seed);
-        // Regression test that isaac is actually using the above vector
-        let v = (0..10).map(|_| rng1.next_u64()).collect::<Vec<_>>();
-        assert_eq!(v,
-                   vec!(15071495833797886820, 7720185633435529318,
+        let mut results = [0u64; 10];
+        for i in results.iter_mut() { *i = rng1.next_u64(); }
+        let expected = [
+                   15071495833797886820, 7720185633435529318,
                    10836773366498097981, 5414053799617603544,
                    12890513357046278984, 17001051845652595546,
                    9240803642279356310, 12558996012687158051,
-                   14673053937227185542, 1677046725350116783));
+                   14673053937227185542, 1677046725350116783];
+        assert_eq!(results, expected);
 
         let seed = [57,48,0,0, 0,0,0,0, 50,9,1,0, 0,0,0,0, 49,212,0,0, 0,0,0,0, 148,38,0,0, 0,0,0,0];
         let mut rng2 = Isaac64Rng::from_seed(seed);
         // skip forward to the 10000th number
         for _ in 0..10000 { rng2.next_u64(); }
 
-        let v = (0..10).map(|_| rng2.next_u64()).collect::<Vec<_>>();
-        assert_eq!(v,
-                   vec!(18143823860592706164, 8491801882678285927,
-                        2699425367717515619, 17196852593171130876,
-                        2606123525235546165, 15790932315217671084,
-                        596345674630742204, 9947027391921273664,
-                        11788097613744130851, 10391409374914919106));
+        for i in results.iter_mut() { *i = rng2.next_u64(); }
+        let expected = [
+            18143823860592706164, 8491801882678285927, 2699425367717515619,
+            17196852593171130876, 2606123525235546165, 15790932315217671084,
+            596345674630742204, 9947027391921273664, 11788097613744130851,
+            10391409374914919106];
+        assert_eq!(results, expected);
     }
 
     #[test]
     fn test_isaac64_true_values_32() {
         let seed = [1,0,0,0, 0,0,0,0, 23,0,0,0, 0,0,0,0, 200,1,0,0, 0,0,0,0, 210,30,0,0, 0,0,0,0];
-        let mut rng1 = Isaac64Rng::from_seed(seed);
-        let v = (0..12).map(|_| rng1.next_u32()).collect::<Vec<_>>();
+        let mut rng = Isaac64Rng::from_seed(seed);
+        let mut results = [0u32; 12];
+        for i in results.iter_mut() { *i = rng.next_u32(); }
         // Subset of above values, as an LE u32 sequence
-        assert_eq!(v,
-                   [3477963620, 3509106075,
+        let expected = [
+                    3477963620, 3509106075,
                     687845478, 1797495790,
                     227048253, 2523132918,
                     4044335064, 1260557630,
                     4079741768, 3001306521,
-                    69157722, 3958365844]);
+                    69157722, 3958365844];
+        assert_eq!(results, expected);
     }
 
     #[test]
@@ -428,25 +431,26 @@ mod test {
     fn test_isaac64_true_bytes() {
         let seed = [1,0,0,0, 0,0,0,0, 23,0,0,0, 0,0,0,0, 200,1,0,0, 0,0,0,0, 210,30,0,0, 0,0,0,0];
         let mut rng1 = Isaac64Rng::from_seed(seed);
-        let mut buf = [0u8; 32];
-        rng1.fill_bytes(&mut buf);
+        let mut results = [0u8; 32];
+        rng1.fill_bytes(&mut results);
         // Same as first values in test_isaac64_true_values as bytes in LE order
-        assert_eq!(buf,
-                   [100, 131, 77, 207, 155, 181, 40, 209,
+        let expected = [100, 131, 77, 207, 155, 181, 40, 209,
                     102, 176, 255, 40, 238, 155, 35, 107,
                     61, 123, 136, 13, 246, 243, 99, 150,
-                    216, 167, 15, 241, 62, 149, 34, 75]);
+                    216, 167, 15, 241, 62, 149, 34, 75];
+        assert_eq!(results, expected);
     }
-    
+
     #[test]
-    fn test_isaac_new_uninitialized() {
+    fn test_isaac64_new_uninitialized() {
         // Compare the results from initializing `IsaacRng` with
         // `new_from_u64(0)`, to make sure it is the same as the reference
         // implementation when used uninitialized.
         // Note: We only test the first 16 integers, not the full 256 of the
         // first block.
         let mut rng = Isaac64Rng::new_from_u64(0);
-        let vec = (0..16).map(|_| rng.next_u64()).collect::<Vec<_>>();
+        let mut results = [0u64; 16];
+        for i in results.iter_mut() { *i = rng.next_u64(); }
         let expected: [u64; 16] = [
             0xF67DFBA498E4937C, 0x84A5066A9204F380, 0xFEE34BD5F5514DBB,
             0x4D1664739B8F80D6, 0x8607459AB52A14AA, 0x0E78BC5A98529E49,
@@ -454,7 +458,7 @@ mod test {
             0xD0771FAF3CB04714, 0x30E86F68A37B008D, 0x3074EBC0488A3ADF,
             0x270645EA7A2790BC, 0x5601A0A8D3763C6A, 0x2F83071F53F325DD,
             0xB9090F3D42D2D2EA];
-        assert_eq!(vec, expected);
+        assert_eq!(results, expected);
     }
 
     #[test]

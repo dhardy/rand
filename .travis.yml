@@ -94,6 +94,7 @@ install:
 
 script:
   - bash utils/ci/script.sh
+  - cargo test --tests --no-default-features
 
 after_script: set +e
 
