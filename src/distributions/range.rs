@@ -657,7 +657,7 @@ mod tests {
 
         let (low, high) = (MyF32{ x: 17.0f32 }, MyF32{ x: 22.0f32 });
         let range = Range::new(low, high);
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(804);
         for _ in 0..100 {
             let x: MyF32 = rng.sample(range);
             assert!(low <= x && x < high);

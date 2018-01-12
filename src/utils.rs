@@ -315,7 +315,7 @@ mod tests {
         // Test that the distribution is a half-open range over [0,1).
         // These constants happen to generate the lowest and highest floats in
         // the range.
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(803);
         let mut bits: u32 = rng.sample(Uniform);
         bits = bits & 0x1ff; // 9 bits with no influence
 
@@ -336,7 +336,7 @@ mod tests {
         // Test that the distribution is a half-open range over [0,1).
         // These constants happen to generate the lowest and highest floats in
         // the range.
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(802);
         let mut bits: u32 = rng.sample(Uniform);
         bits = bits & 0x1ff; // 9 bits with no influence
 
@@ -356,7 +356,7 @@ mod tests {
         // Test that the distribution is a half-open range over [0,1).
         // These constants happen to generate the lowest and highest floats in
         // the range.
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(801);
         let mut bits: u32 = rng.sample(Uniform);
         bits = bits & 0x1ff; // 9 bits with no influence
 

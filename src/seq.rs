@@ -228,7 +228,6 @@ mod test {
     use super::*;
     use SeedableRng;
     use prng::XorShiftRng;
-    use alloc::Vec;
 
     #[test]
     fn test_sample_iter() {

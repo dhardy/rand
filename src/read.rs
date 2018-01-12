@@ -120,6 +120,6 @@ mod test {
 
         let mut rng = ReadRng::new(&v[..]);
 
-        assert!(rng.try_fill_bytes(&mut w).err().unwrap().kind == ErrorKind::Unavailable);
+        assert!(rng.try_fill_bytes(&mut w).err().unwrap().kind() == ErrorKind::Unavailable);
     }
 }

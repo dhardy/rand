@@ -243,7 +243,7 @@ mod tests {
     
     #[test]
     fn test_integers() {
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(806);
         
         rng.sample::<isize, _>(Uniform);
         rng.sample::<i8, _>(Uniform);
@@ -264,7 +264,7 @@ mod tests {
     
     #[test]
     fn test_chars() {
-        let mut rng = ::test::rng();
+        let mut rng = ::test::rng(805);
         
         let _ = rng.sample(Codepoint);
         let c = rng.sample(Alphanumeric);

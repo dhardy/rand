@@ -415,7 +415,7 @@ mod test {
     #[test]
     fn test_isaac_true_values_64() {
         // As above, using little-endian versions of above values
-        let seed = IsaacRng::from_seed(seed);
+        let seed = [1,0,0,0, 23,0,0,0, 200,1,0,0, 210,30,0,0, 57,48,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
         let mut rng = IsaacRng::from_seed(seed);
         let mut results = [0u64; 5];
         for i in results.iter_mut() { *i = rng.next_u64(); }

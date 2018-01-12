@@ -249,7 +249,7 @@ mod test {
         assert_eq!(rng1.next_u32(), 137206642);
         
         let mut rng2 = ChaChaRng::from_rng(&mut rng1).unwrap();
-        assert_eq!(rng2.next_u32(), 137206642);
+        assert_eq!(rng2.next_u32(), 1325750369);
         
         // Test that various construction techniques produce a working RNG.
         /* TODO: from_hashable
@@ -315,7 +315,7 @@ mod test {
 
     #[test]
     fn test_chacha_clone() {
-        let seed: &[_] = &[0,1,2,3,4,5,6,7];
+        let seed = [0,0,0,0, 1,0,0,0, 2,0,0,0, 3,0,0,0, 4,0,0,0, 5,0,0,0, 6,0,0,0, 7,0,0,0];
         let mut rng: ChaChaRng = SeedableRng::from_seed(seed);
         let mut clone = rng.clone();
         for _ in 0..16 {

@@ -191,7 +191,6 @@ impl<R: Rng + NewSeeded> Reseeder<R> for ReseedWithNew {
 
 #[cfg(test)]
 mod test {
-    use std::iter::repeat;
     use mock::MockAddRng;
     use {SeedableRng, Rng, iter, Error};
     use super::{ReseedingRng, Reseeder};
