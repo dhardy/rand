@@ -82,7 +82,7 @@ impl Rng for XorShiftRng {
         impls::fill_bytes_via_u32(self, dest)
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
         Ok(self.fill_bytes(dest))
     }
 }
@@ -113,7 +113,7 @@ impl SeedableRng for XorShiftRng {
                 let ptr = seed_u32.as_mut_ptr() as *mut u8;
 
                 let slice = slice::from_raw_parts_mut(ptr, 4 * 4);
-                rng.try_fill(slice)?;
+                rng.try_fill_bytes(slice)?;
             }
             if !seed_u32.iter().all(|&x| x == 0) { break; }
         }

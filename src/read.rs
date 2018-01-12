@@ -21,9 +21,9 @@ use rand_core::impls;
 ///
 /// # Panics
 ///
-/// Only the `try_fill` method will report errors. All other methods will panic
-/// if the underlying reader encounters an error. They will also panic if there
-/// is insufficient data to fulfill a request.
+/// Only the `try_fill_bytes` method will report errors. All other methods will
+/// panic if the underlying reader encounters an error. They will also panic if
+/// there is insufficient data to fulfill a request.
 ///
 /// # Example
 ///
@@ -120,6 +120,6 @@ mod test {
 
         let mut rng = ReadRng::new(&v[..]);
 
-        assert!(rng.try_fill(&mut w).err().unwrap().kind == ErrorKind::Unavailable);
+        assert!(rng.try_fill_bytes(&mut w).err().unwrap().kind == ErrorKind::Unavailable);
     }
 }

@@ -97,13 +97,13 @@ pub mod impls;
 /// PRNGs are usually infallible, while external generators may fail. Since
 /// errors are rare and may be hard for the user to handle, most of the output
 /// functions do not return a `Result`; byte output can however be retrieved
-/// with `try_fill` which allows for the usual error handling. If the random
-/// source implements other output functions in terms of `try_fill` (see
+/// with `try_fill_bytes` which allows for the usual error handling. If the random
+/// source implements other output functions in terms of `try_fill_bytes` (see
 /// `impls::fill_via_try_fill`), then some errors will be handled implicitly,
 /// so long as not too many retries are needed (specifically: `NotReady` is
 /// handled by waiting up to 1 minute, and `Transient` is handled by retrying
 /// a few times). In some applications it may make sense to ensure your entropy
-/// source (e.g. `OsRng`) is ready by calling `try_fill` explicitly before
+/// source (e.g. `OsRng`) is ready by calling `try_fill_bytes` explicitly before
 /// using any of the other output functions.
 pub trait Rng {
     /// Return the next random u32.
@@ -137,7 +137,7 @@ pub trait Rng {
     /// 1 is required. A different implementation might use `next_u32` and
     /// only consume 4 bytes; *however* any change affecting *reproducibility*
     /// of output must be considered a breaking change.
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error>;
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error>;
 }
 
 /// A marker trait for an `Rng` which may be considered for use in
@@ -178,8 +178,8 @@ impl<'a, R: Rng+?Sized> Rng for &'a mut R {
         (**self).fill_bytes(dest)
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        (**self).try_fill(dest)
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        (**self).try_fill_bytes(dest)
     }
 }
 
@@ -202,8 +202,8 @@ impl<R: Rng+?Sized> Rng for Box<R> {
         (**self).fill_bytes(dest)
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        (**self).try_fill(dest)
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        (**self).try_fill_bytes(dest)
     }
 }
 
@@ -265,7 +265,7 @@ pub trait SeedableRng: Sized {
         unsafe {
             let ptr = seed.as_mut().as_mut_ptr() as *mut u8;
             let slice = slice::from_raw_parts_mut(ptr, size);
-            rng.try_fill(slice)?;
+            rng.try_fill_bytes(slice)?;
         }
         Ok(Self::from_seed(seed))
     }

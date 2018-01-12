@@ -251,7 +251,7 @@ impl Rng for IsaacRng {
         }
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
         Ok(self.fill_bytes(dest))
     }
 }
@@ -358,7 +358,7 @@ impl SeedableRng for IsaacRng {
             let ptr = seed.as_mut_ptr() as *mut u8;
 
             let slice = slice::from_raw_parts_mut(ptr, RAND_SIZE * 4);
-            other.try_fill(slice)?;
+            other.try_fill_bytes(slice)?;
         }
         for i in seed.iter_mut() {
             *i = w(i.0.to_le());

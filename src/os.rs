@@ -548,7 +548,7 @@ mod test {
         r.next_u64();
 
         let mut v = [0u8; 1000];
-        r.try_fill(&mut v).unwrap();
+        r.try_fill_bytes(&mut v).unwrap();
     }
 
     #[test]
@@ -574,7 +574,7 @@ mod test {
                     thread::yield_now();
                     r.next_u64();
                     thread::yield_now();
-                    r.try_fill(&mut v).unwrap();
+                    r.try_fill_bytes(&mut v).unwrap();
                     thread::yield_now();
                 }
             });

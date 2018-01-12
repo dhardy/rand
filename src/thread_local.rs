@@ -44,8 +44,8 @@ impl Rng for ThreadRng {
         self.rng.borrow_mut().fill_bytes(dest);
     }
 
-    fn try_fill(&mut self, bytes: &mut [u8]) -> Result<(), Error> {
-        self.rng.borrow_mut().try_fill(bytes)
+    fn try_fill_bytes(&mut self, bytes: &mut [u8]) -> Result<(), Error> {
+        self.rng.borrow_mut().try_fill_bytes(bytes)
     }
 }
 

@@ -50,8 +50,8 @@ impl Rng for IsaacWordRng {
         self.0.fill_bytes(dest)
     }
 
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.0.try_fill(dest)
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        self.0.try_fill_bytes(dest)
     }
 }
 

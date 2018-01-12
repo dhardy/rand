@@ -477,8 +477,8 @@ impl Rng for StdRng {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.0.fill_bytes(dest);
     }
-    fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.0.try_fill(dest)
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+        self.0.try_fill_bytes(dest)
     }
 }
 
@@ -520,8 +520,8 @@ mod test {
         fn fill_bytes(&mut self, dest: &mut [u8]) {
             self.inner.fill_bytes(dest)
         }
-        fn try_fill(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-            self.inner.try_fill(dest)
+        fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+            self.inner.try_fill_bytes(dest)
         }
     }
 

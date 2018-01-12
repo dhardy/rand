@@ -186,7 +186,7 @@ pub fn next_u128_via_fill<R: Rng+?Sized>(rng: &mut R) -> u128 {
     impl_uint_from_fill!(rng, u128, 16)
 }
 
-/// Implement `fill_bytes` via `try_fill` with implicit error handling.
+/// Implement `fill_bytes` via `try_fill_bytes` with implicit error handling.
 pub fn fill_via_try_fill<R: Rng+?Sized>(rng: &mut R, dest: &mut [u8]) {
     const WAIT_DUR_MS: u32 = 100;
     const MAX_WAIT: u32 = (1 * 60 * 1000) / WAIT_DUR_MS;
@@ -194,7 +194,7 @@ pub fn fill_via_try_fill<R: Rng+?Sized>(rng: &mut R, dest: &mut [u8]) {
     let mut err_count = 0;
     
     loop {
-        if let Err(e) = rng.try_fill(dest) {
+        if let Err(e) = rng.try_fill_bytes(dest) {
             if e.kind.should_retry() {
                 if err_count > MAX_WAIT {
                     // TODO: log details & cause?
