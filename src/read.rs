@@ -58,11 +58,6 @@ impl<R: Read> Rng for ReadRng<R> {
         impls::next_u64_via_fill(self)
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_fill(self)
-    }
-    
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.try_fill_bytes(dest).unwrap();
     }

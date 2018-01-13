@@ -34,11 +34,6 @@ impl Rng for ThreadRng {
     fn next_u64(&mut self) -> u64 {
         self.rng.borrow_mut().next_u64()
     }
-    
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        self.rng.borrow_mut().next_u128()
-    }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.rng.borrow_mut().fill_bytes(dest);

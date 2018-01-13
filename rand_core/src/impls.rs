@@ -74,12 +74,6 @@ pub fn fill_bytes_via_u64<R: Rng+?Sized>(rng: &mut R, dest: &mut [u8]) {
     fill_bytes_via!(rng, next_u64, 8, dest)
 }
 
-/// Implement `fill_bytes` via `next_u128`, little-endian order.
-#[cfg(feature = "i128_support")]
-pub fn fill_bytes_via_u128<R: Rng+?Sized>(rng: &mut R, dest: &mut [u8]) {
-    fill_bytes_via!(rng, next_u128, 16, dest)
-}
-
 macro_rules! impl_uint_from_fill {
     ($self:expr, $ty:ty, $N:expr) => ({
         debug_assert!($N == ::core::mem::size_of::<$ty>());

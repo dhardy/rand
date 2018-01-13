@@ -331,11 +331,6 @@ impl Rng for Hc128Rng {
         }
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_u64(self)
-    }
-
     // As an optimization we try to write directly into the output buffer.
     // This is only enabled for platforms where unaligned writes are known to
     // be safe and fast.

@@ -94,7 +94,10 @@ impl Distribution<i64> for Uniform {
 impl Distribution<i128> for Uniform {
     #[inline]
     fn sample<R: Rng+?Sized>(&self, rng: &mut R) -> i128 {
-        rng.next_u128() as i128
+        // Use LE; we explicitly generate one value before the next.
+        let x = rng.next_u64() as u128;
+        let y = rng.next_u64() as u128;
+        ((y << 64) | x) as i128
     }
 }
 
@@ -143,7 +146,10 @@ impl Distribution<u64> for Uniform {
 impl Distribution<u128> for Uniform {
     #[inline]
     fn sample<R: Rng+?Sized>(&self, rng: &mut R) -> u128 {
-        rng.next_u128()
+        // Use LE; we explicitly generate one value before the next.
+        let x = rng.next_u64() as u128;
+        let y = rng.next_u64() as u128;
+        (y << 64) | x
     }
 }
 

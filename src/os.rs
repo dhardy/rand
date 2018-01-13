@@ -61,11 +61,6 @@ impl Rng for OsRng {
         impls::next_u64_via_fill(self)
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_fill(self)
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         // We cannot return Err(..), so we try to handle before panicking.
         const WAIT_DUR_MS: u32 = 100;   // retry every 100ms

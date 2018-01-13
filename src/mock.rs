@@ -48,16 +48,13 @@ impl Rng for MockAddRng {
     fn next_u32(&mut self) -> u32 {
         self.next_u64() as u32
     }
+
     fn next_u64(&mut self) -> u64 {
         let result = self.v.0;
         self.v += self.a;
         result
     }
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_u64(self)
-    }
-    
+
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         impls::fill_bytes_via_u64(self, dest);
     }
