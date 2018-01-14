@@ -123,16 +123,6 @@ impl<R: Rng, Rsdr: Reseeder<R>> Rng for ReseedingRng<R, Rsdr> {
         value
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        let value = self.rng.next_u128();
-        self.bytes_until_reseed -= 16;
-        if self.bytes_until_reseed <= 0 {
-            self.reseed();
-        }
-        value
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.rng.fill_bytes(dest);
         self.bytes_until_reseed -= dest.len() as i64;

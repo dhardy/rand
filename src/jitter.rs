@@ -738,11 +738,6 @@ impl Rng for JitterRng {
        self.gen_entropy()
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_u64(self)
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         impls::fill_bytes_via_u64(self, dest)
     }

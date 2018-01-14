@@ -112,10 +112,6 @@ pub trait Rng {
     /// Return the next random u64.
     fn next_u64(&mut self) -> u64;
 
-    /// Return the next random u128.
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128;
-
     /// Fill `dest` entirely with random data.
     ///
     /// This method does *not* have any requirement on how much of the
@@ -169,11 +165,6 @@ impl<'a, R: Rng+?Sized> Rng for &'a mut R {
         (**self).next_u64()
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        (**self).next_u128()
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         (**self).fill_bytes(dest)
     }
@@ -191,11 +182,6 @@ impl<R: Rng+?Sized> Rng for Box<R> {
 
     fn next_u64(&mut self) -> u64 {
         (**self).next_u64()
-    }
-
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        (**self).next_u128()
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {

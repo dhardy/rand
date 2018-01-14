@@ -470,10 +470,6 @@ impl Rng for StdRng {
     fn next_u64(&mut self) -> u64 {
         self.0.next_u64()
     }
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        self.0.next_u128()
-    }
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.0.fill_bytes(dest);
     }
@@ -511,10 +507,6 @@ mod test {
         }
         fn next_u64(&mut self) -> u64 {
             self.inner.next_u64()
-        }
-        #[cfg(feature = "i128_support")]
-        fn next_u128(&mut self) -> u128 {
-            self.inner.next_u128()
         }
         fn fill_bytes(&mut self, dest: &mut [u8]) {
             self.inner.fill_bytes(dest)

@@ -41,11 +41,6 @@ impl Rng for IsaacWordRng {
         self.0.next_u64()
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        self.0.next_u128()
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.0.fill_bytes(dest)
     }

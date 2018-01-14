@@ -196,11 +196,6 @@ impl Rng for ChaChaRng {
         impls::next_u64_via_u32(self)
     }
 
-    #[cfg(feature = "i128_support")]
-    fn next_u128(&mut self) -> u128 {
-        impls::next_u128_via_u64(self)
-    }
-
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         let mut read_len = 0;
         while read_len < dest.len() {
