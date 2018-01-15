@@ -98,13 +98,8 @@ pub mod impls;
 /// errors are rare and may be hard for the user to handle, most of the output
 /// functions do not return a `Result`; byte output can however be retrieved
 /// with `try_fill_bytes` which allows for the usual error handling. If the random
-/// source implements other output functions in terms of `try_fill_bytes` (see
-/// `impls::fill_via_try_fill`), then some errors will be handled implicitly,
-/// so long as not too many retries are needed (specifically: `NotReady` is
-/// handled by waiting up to 1 minute, and `Transient` is handled by retrying
-/// a few times). In some applications it may make sense to ensure your entropy
-/// source (e.g. `OsRng`) is ready by calling `try_fill_bytes` explicitly before
-/// using any of the other output functions.
+/// source implements other output functions in terms of `try_fill_bytes`, then
+/// it may make sense to handle some errors internally (see `ErrorKind` enum).
 pub trait Rng {
     /// Return the next random u32.
     fn next_u32(&mut self) -> u32;
@@ -275,7 +270,8 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    /// True if this kind of error may resolve itself on retry.
+    /// True if this kind of error may resolve itself on retry. If this is
+    /// true, the operation should be retried a few times before failing.
     /// 
     /// See also `should_wait()`.
     pub fn should_retry(self) -> bool {
@@ -285,7 +281,11 @@ impl ErrorKind {
         }
     }
     
-    /// True if we should retry but wait before retrying
+    /// True if we should retry but wait before retrying. If this is true, the
+    /// operation should be retried before failing, but with a delay, e.g. to
+    /// allow an external randomness source to initialize itself. Normally a
+    /// few seconds should be sufficient and waiting can be asynchronous; e.g.
+    /// see how `OsRng::fill_bytes` handles this.
     /// 
     /// This implies `should_retry()` is true.
     pub fn should_wait(self) -> bool {
