@@ -10,7 +10,7 @@
 
 //! Random operations on sequences
 
-#[cfg(not(feature="std"))] use alloc::Vec;
+#[cfg(all(not(feature="std"), feature="alloc"))] use alloc::Vec;
 
 use {Rng, Sample};
 

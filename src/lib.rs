@@ -494,9 +494,8 @@ mod test {
     use {Rng, Sample, StdRng, Error, SeedableRng};
     use mock::MockAddRng;   
     use distributions::{Uniform, Uniform01, Range};
-    use sequences::Shuffle;
-    #[cfg(feature="alloc")]
-    use alloc::boxed::Box;
+    #[cfg(any(feature="std", feature="alloc"))] use sequences::Shuffle;
+    #[cfg(feature="alloc")] use alloc::boxed::Box;
 
     #[derive(Debug)]
     pub struct TestRng<R: ?Sized> { inner: R }
