@@ -171,14 +171,45 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
-<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
+<span class="comment">// https://rust-lang.org/COPYRIGHT.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
+<span class="comment">// https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
+<span class="comment">// &lt;LICENSE-MIT or https://opensource.org/licenses/MIT&gt;, at your</span>
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
@@ -187,7 +218,7 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span> <span class="kw">as</span> <span class="ident">w</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">slice</span>};
 <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>};
-<span class="kw">use</span> <span class="ident">rand_core</span>::<span class="ident">le</span>;
+<span class="kw">use</span> {<span class="ident">impls</span>, <span class="ident">le</span>};
 
 <span class="doccomment">/// An Xorshift[1] random number</span>
 <span class="doccomment">/// generator.</span>
@@ -197,9 +228,10 @@
 <span class="doccomment">/// requirements, use a more secure one such as `IsaacRng` or `OsRng`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [1]: Marsaglia, George (July 2003). [&quot;Xorshift</span>
-<span class="doccomment">/// RNGs&quot;](http://www.jstatsoft.org/v08/i14/paper). *Journal of</span>
+<span class="doccomment">/// RNGs&quot;](https://www.jstatsoft.org/v08/i14/paper). *Journal of</span>
 <span class="doccomment">/// Statistical Software*. Vol. 8 (Issue 14).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>,<span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XorShiftRng</span> {
     <span class="ident">x</span>: <span class="ident">w</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="ident">y</span>: <span class="ident">w</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
@@ -243,21 +275,13 @@
         <span class="self">self</span>.<span class="ident">w</span> <span class="op">=</span> <span class="ident">w_</span> <span class="op">^</span> (<span class="ident">w_</span> <span class="op">&gt;&gt;</span> <span class="number">19</span>) <span class="op">^</span> (<span class="ident">t</span> <span class="op">^</span> (<span class="ident">t</span> <span class="op">&gt;&gt;</span> <span class="number">8</span>));
         <span class="self">self</span>.<span class="ident">w</span>.<span class="number">0</span>
     }
-    
+
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">next_u64_via_u32</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u128</span> {
-        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">next_u128_via_u64</span>(<span class="self">self</span>)
-    }
-    
-    <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        ::<span class="ident">rand_core</span>::<span class="ident">impls</span>::<span class="ident">fill_bytes_via_u32</span>(<span class="self">self</span>, <span class="ident">dest</span>);
+        <span class="ident">impls</span>::<span class="ident">next_u64_via_u32</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">try_fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">fill_bytes</span>(<span class="ident">dest</span>))
+    <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+        <span class="ident">impls</span>::<span class="ident">fill_bytes_via_u32</span>(<span class="self">self</span>, <span class="ident">dest</span>)
     }
 }
 
@@ -268,6 +292,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed_u32</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">4</span>];
         <span class="ident">le</span>::<span class="ident">read_u32_into</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">seed_u32</span>);
 
+        <span class="comment">// Xorshift cannot be seeded with 0 and we cannot return an Error, but</span>
+        <span class="comment">// also do not wish to panic (because a random seed can legitimately be</span>
+        <span class="comment">// 0); our only option is therefore to use a preset value.</span>
         <span class="kw">if</span> <span class="ident">seed_u32</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>) {
             <span class="ident">seed_u32</span> <span class="op">=</span> [<span class="number">0xBAD_5EED</span>, <span class="number">0xBAD_5EED</span>, <span class="number">0xBAD_5EED</span>, <span class="number">0xBAD_5EED</span>];
         }
@@ -287,7 +314,7 @@
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">seed_u32</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
 
                 <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="number">4</span> <span class="op">*</span> <span class="number">4</span>);
-                <span class="ident">rng</span>.<span class="ident">try_fill</span>(<span class="ident">slice</span>)<span class="question-mark">?</span>;
+                <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="ident">slice</span>)<span class="question-mark">?</span>;
             }
             <span class="kw">if</span> <span class="op">!</span><span class="ident">seed_u32</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span>) { <span class="kw">break</span>; }
         }
@@ -300,7 +327,41 @@
         })
     }
 }
-</pre>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
+    <span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_serde</span>() {
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">XorShiftRng</span>;
+        <span class="kw">use</span> <span class="ident">thread_rng</span>;
+        <span class="kw">use</span> <span class="ident">bincode</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufWriter</span>, <span class="ident">BufReader</span>};
+
+        <span class="kw">let</span> <span class="ident">seed</span>: [<span class="ident">u32</span>; <span class="number">4</span>] <span class="op">=</span> <span class="ident">thread_rng</span>().<span class="ident">gen</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span>: <span class="ident">XorShiftRng</span> <span class="op">=</span> <span class="ident">SeedableRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
+
+        <span class="kw">let</span> <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">buf</span>);
+        <span class="ident">bincode</span>::<span class="ident">serialize_into</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="ident">rng</span>, <span class="ident">bincode</span>::<span class="ident">Infinite</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not serialize&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">into_inner</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deserialized</span>: <span class="ident">XorShiftRng</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">deserialize_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">read</span>, <span class="ident">bincode</span>::<span class="ident">Infinite</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not deserialize&quot;</span>);
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">x</span>, <span class="ident">deserialized</span>.<span class="ident">x</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">y</span>, <span class="ident">deserialized</span>.<span class="ident">y</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">z</span>, <span class="ident">deserialized</span>.<span class="ident">z</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">w</span>, <span class="ident">deserialized</span>.<span class="ident">w</span>);
+
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="ident">deserialized</span>.<span class="ident">next_u64</span>());
+        }
+    }
+}</pre>
 </section>
     <section id='search' class="content hidden"></section>
 

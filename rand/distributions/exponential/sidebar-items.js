@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["exp1","Generates Exp(1) random numbers."]],"struct":[["Exp","The exponential distribution `Exp(lambda)`."]]});
+initSidebarItems({"struct":[["Exp","The exponential distribution `Exp(lambda)`."],["Exp1","A wrapper around an `f64` to generate Exp(1) random numbers."]]});

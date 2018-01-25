@@ -48,14 +48,17 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/rand/seq.rs.html#41-67' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn sample_iter&lt;T, I, R&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;rng: R, <br>&nbsp;&nbsp;&nbsp;&nbsp;iterable: I, <br>&nbsp;&nbsp;&nbsp;&nbsp;amount: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;, <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html" title="trait core::iter::traits::IntoIterator">IntoIterator</a>&lt;Item = T&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../../rand/trait.Rng.html" title="trait rand::Rng">Rng</a>,&nbsp;</span></pre><div class='docblock'><p>Randomly sample <code>amount</code> elements from a finite iterator.</p>
+               </span><a class='srclink' href='../../src/rand/seq.rs.html#42-68' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn sample_iter&lt;T, I, R&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;rng: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>R, <br>&nbsp;&nbsp;&nbsp;&nbsp;iterable: I, <br>&nbsp;&nbsp;&nbsp;&nbsp;amount: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;, <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html" title="trait core::iter::traits::IntoIterator">IntoIterator</a>&lt;Item = T&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../../rand/trait.SampleRng.html" title="trait rand::SampleRng">SampleRng</a>,&nbsp;</span></pre><div class='docblock'><p>Randomly sample <code>amount</code> elements from a finite iterator.</p>
 
-<p>The following can be returned:
-- <code>Ok</code>: <code>Vec</code> of <code>amount</code> non-repeating randomly sampled elements. The order is not random.
-- <code>Err</code>: <code>Vec</code> of all the elements from <code>iterable</code> in sequential order. This happens when the
-  length of <code>iterable</code> was less than <code>amount</code>. This is considered an error since exactly
-  <code>amount</code> elements is typically expected.</p>
+<p>The following can be returned:</p>
+
+<ul>
+<li><code>Ok</code>: <code>Vec</code> of <code>amount</code> non-repeating randomly sampled elements. The order is not random.</li>
+<li><code>Err</code>: <code>Vec</code> of all the elements from <code>iterable</code> in sequential order. This happens when the
+length of <code>iterable</code> was less than <code>amount</code>. This is considered an error since exactly
+<code>amount</code> elements is typically expected.</li>
+</ul>
 
 <p>This implementation uses <code>O(len(iterable))</code> time and <code>O(amount)</code> memory.</p>
 

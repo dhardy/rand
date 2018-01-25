@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ChaChaRng","A random number generator that uses the ChaCha20 algorithm [1]."]]});
+initSidebarItems({"struct":[["ChaChaRng","A cryptographically secure random number generator that uses the ChaCha algorithm."]]});

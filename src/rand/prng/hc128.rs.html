@@ -572,35 +572,42 @@
 <span id="527">527</span>
 <span id="528">528</span>
 <span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
-<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
+<span class="comment">// https://www.rust-lang.org/COPYRIGHT.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
+<span class="comment">// https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
+<span class="comment">// &lt;LICENSE-MIT or https://opensource.org/licenses/MIT&gt;, at your</span>
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
 <span class="doccomment">//! The HC-128 random number generator.</span>
 
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">slice</span>};
-<span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">impls</span>, <span class="ident">le</span>};
-<span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">CryptoRng</span>, <span class="ident">SeedableRng</span>, <span class="ident">Error</span>};
+<span class="kw">use</span> {<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>};
+<span class="kw">use</span> {<span class="ident">impls</span>, <span class="ident">le</span>};
 
 <span class="kw">const</span> <span class="ident">SEED_WORDS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>; <span class="comment">// 128 bit key followed by 128 bit iv</span>
 
 <span class="doccomment">/// A cryptographically secure random number generator that uses the HC-128</span>
 <span class="doccomment">/// algorithm.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// HC-128 is a stream cipher designed by Hongjun Wu[1], that we use as an RNG.</span>
+<span class="doccomment">/// HC-128 is a stream cipher designed by Hongjun Wu [1], that we use as an RNG.</span>
 <span class="doccomment">/// It is selected as one of the &quot;stream ciphers suitable for widespread</span>
-<span class="doccomment">/// adoption&quot; by eSTREAM[2].</span>
+<span class="doccomment">/// adoption&quot; by eSTREAM [2].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// HC-128 is an array based RNG. In this it is similar to RC-4 and ISAAC before</span>
 <span class="doccomment">/// it, but those have never been proven cryptographically secure (or have even</span>
-<span class="doccomment">/// been broken).</span>
+<span class="doccomment">/// been significantly compromised, as in the case of RC-4 [5]).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Because HC-128 works with simple indexing into a large array and with a few</span>
 <span class="doccomment">/// operations that parallelize well, it has very good performance. The size of</span>
@@ -608,46 +615,53 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This implementation is not based on the version of HC-128 submitted to the</span>
 <span class="doccomment">/// eSTREAM contest, but on a later version by the author with a few small</span>
-<span class="doccomment">/// improvements from December 15, 2009[3].</span>
+<span class="doccomment">/// improvements from December 15, 2009 [3].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// HC-128 has no known weaknesses that are easier to exploit than doing a</span>
 <span class="doccomment">/// brute-force search of 2&lt;sup&gt;128&lt;/sup&gt;. A very comprehensive analysis of the</span>
 <span class="doccomment">/// current state of known attacks / weaknesses of HC-128 is given in [4].</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// The average cycle length is expected to be</span>
+<span class="doccomment">/// 2&lt;sup&gt;1024*32-1&lt;/sup&gt; = 2&lt;sup&gt;32767&lt;/sup&gt;.</span>
+<span class="doccomment">/// We support seeding with a 256-bit array, which matches the 128-bit key</span>
+<span class="doccomment">/// concatenated with a 128-bit IV from the stream cipher.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// ## References</span>
-<span class="doccomment">/// [1]: Hongjun Wu (2008). [&quot;The Stream Cipher HC-128&quot;]</span>
-<span class="doccomment">///      (http://www.ecrypt.eu.org/stream/p3ciphers/hc/hc128_p3.pdf).</span>
+<span class="doccomment">/// [1]: Hongjun Wu (2008). [&quot;The Stream Cipher HC-128&quot;](</span>
+<span class="doccomment">///      http://www.ecrypt.eu.org/stream/p3ciphers/hc/hc128_p3.pdf).</span>
 <span class="doccomment">///      *The eSTREAM Finalists*, LNCS 4986, pp. 39--47, Springer-Verlag.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [2]: [eSTREAM: the ECRYPT Stream Cipher Project]</span>
-<span class="doccomment">///      (http://www.ecrypt.eu.org/stream/)</span>
+<span class="doccomment">/// [2]: [eSTREAM: the ECRYPT Stream Cipher Project](</span>
+<span class="doccomment">///      http://www.ecrypt.eu.org/stream/)</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [3]: Hongjun Wu, [Stream Ciphers HC-128 and HC-256]</span>
-<span class="doccomment">///      (http://www3.ntu.edu.sg/home/wuhj/research/hc/index.html)</span>
+<span class="doccomment">/// [3]: Hongjun Wu, [Stream Ciphers HC-128 and HC-256](</span>
+<span class="doccomment">///      https://www.ntu.edu.sg/home/wuhj/research/hc/index.html)</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [4]: Shashwat Raizada (January 2015),</span>
-<span class="doccomment">///      [&quot;Some Results On Analysis And Implementation Of HC-128 Stream Cipher&quot;]</span>
-<span class="doccomment">///      (http://library.isical.ac.in:8080/jspui/bitstream/123456789/6636/1/TH431.pdf).</span>
+<span class="doccomment">/// [4]: Shashwat Raizada (January 2015),[&quot;Some Results On Analysis And</span>
+<span class="doccomment">///      Implementation Of HC-128 Stream Cipher&quot;](</span>
+<span class="doccomment">///      http://library.isical.ac.in:8080/jspui/bitstream/123456789/6636/1/TH431.pdf).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [5]: Internet Engineering Task Force (Februari 2015),</span>
+<span class="doccomment">///      [&quot;Prohibiting RC4 Cipher Suites&quot;](https://tools.ietf.org/html/rfc7465).</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Hc128Rng</span> {
     <span class="ident">state</span>: <span class="ident">Hc128</span>,
     <span class="ident">results</span>: [<span class="ident">u32</span>; <span class="number">16</span>],
     <span class="ident">index</span>: <span class="ident">usize</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Hc128Rng</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Hc128Rng</span> {
-        <span class="ident">Hc128Rng</span> {
-            <span class="ident">state</span>: <span class="self">self</span>.<span class="ident">state</span>,
-            <span class="ident">results</span>: <span class="self">self</span>.<span class="ident">results</span>,
-            <span class="ident">index</span>: <span class="self">self</span>.<span class="ident">index</span>
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Hc128</span> {
     <span class="ident">t</span>: [<span class="ident">u32</span>; <span class="number">1024</span>],
     <span class="ident">counter1024</span>: <span class="ident">usize</span>,
+}
+
+<span class="comment">// Cannot be derived because [u32; 1024] does not implement Clone in</span>
+<span class="comment">// Rust &lt; 1.21.0 (since https://github.com/rust-lang/rust/pull/43690)</span>
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Hc128</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Hc128</span> {
+        <span class="kw-2">*</span><span class="self">self</span>
+    }
 }
 
 <span class="comment">// Custom Debug implementation that does not expose the internal state</span>
@@ -658,6 +672,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Hc128Rng</span> {
+    <span class="comment">// Initialize an HC-128 random number generator. The seed has to be</span>
+    <span class="comment">// 256 bits in length (`[u32; 8]`), matching the 128 bit `key` followed by</span>
+    <span class="comment">// 128 bit `iv` when HC-128 where to be used as a stream cipher.</span>
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">seed</span>: [<span class="ident">u32</span>; <span class="ident">SEED_WORDS</span>]) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">f1</span>(<span class="ident">x</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
@@ -896,11 +913,6 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i128_support&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u128</span> {
-        <span class="ident">impls</span>::<span class="ident">next_u128_via_u64</span>(<span class="self">self</span>)
-    }
-
     <span class="comment">// As an optimization we try to write directly into the output buffer.</span>
     <span class="comment">// This is only enabled for platforms where unaligned writes are known to</span>
     <span class="comment">// be safe and fast.</span>
@@ -912,7 +924,7 @@
         <span class="comment">// Continue filling from the current set of results</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">&lt;</span> <span class="number">16</span> {
             <span class="kw">let</span> (<span class="ident">consumed_u32</span>, <span class="ident">filled_u8</span>) <span class="op">=</span>
-                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>[<span class="self">self</span>.<span class="ident">index</span>..],
+                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">results</span>[<span class="self">self</span>.<span class="ident">index</span>..],
                                            <span class="ident">dest</span>);
 
             <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">consumed_u32</span>;
@@ -937,7 +949,7 @@
             <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>);
 
             <span class="kw">let</span> (<span class="ident">consumed_u32</span>, _) <span class="op">=</span>
-                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>,
+                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">results</span>,
                                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="ident">filled</span>..]);
 
             <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="ident">consumed_u32</span>;
@@ -954,29 +966,27 @@
             }
 
             <span class="kw">let</span> (<span class="ident">consumed_u32</span>, <span class="ident">filled_u8</span>) <span class="op">=</span>
-                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>[<span class="self">self</span>.<span class="ident">index</span>..],
+                <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">results</span>[<span class="self">self</span>.<span class="ident">index</span>..],
                                            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="ident">read_len</span>..]);
 
             <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">consumed_u32</span>;
             <span class="ident">read_len</span> <span class="op">+=</span> <span class="ident">filled_u8</span>;
         }
     }
-
-    <span class="kw">fn</span> <span class="ident">try_fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">fill_bytes</span>(<span class="ident">dest</span>))
-    }
 }
 
 <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">Hc128Rng</span> {
     <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="ident">SEED_WORDS</span><span class="kw-2">*</span><span class="number">4</span>];
+
+    <span class="doccomment">/// Create an HC-128 random number generator with a seed. The seed has to be</span>
+    <span class="doccomment">/// 256 bits in length, matching the 128 bit `key` followed by 128 bit `iv`</span>
+    <span class="doccomment">/// when HC-128 where to be used as a stream cipher.</span>
     <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed_u32</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="ident">SEED_WORDS</span>];
         <span class="ident">le</span>::<span class="ident">read_u32_into</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">seed_u32</span>);
         <span class="ident">Hc128Rng</span>::<span class="ident">init</span>(<span class="ident">seed_u32</span>)
     }
 }
-
-<span class="kw">impl</span> <span class="ident">CryptoRng</span> <span class="kw">for</span> <span class="ident">Hc128Rng</span> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
@@ -990,12 +1000,13 @@
                     <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]; <span class="comment">// iv</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Hc128Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">16</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
-                   <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0x73150082</span>, <span class="number">0x3bfd03a0</span>, <span class="number">0xfb2fd77f</span>, <span class="number">0xaa63af0e</span>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">16</span>];
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0x73150082</span>, <span class="number">0x3bfd03a0</span>, <span class="number">0xfb2fd77f</span>, <span class="number">0xaa63af0e</span>,
                         <span class="number">0xde122fc6</span>, <span class="number">0xa7dc29b6</span>, <span class="number">0x62a68527</span>, <span class="number">0x8b75ec68</span>,
                         <span class="number">0x9036db1e</span>, <span class="number">0x81896005</span>, <span class="number">0x00ade078</span>, <span class="number">0x491fbf9a</span>,
-                        <span class="number">0x1cdc3013</span>, <span class="number">0x6c3d6e24</span>, <span class="number">0x90f664b2</span>, <span class="number">0x9cd57102</span>));
+                        <span class="number">0x1cdc3013</span>, <span class="number">0x6c3d6e24</span>, <span class="number">0x90f664b2</span>, <span class="number">0x9cd57102</span>];
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1005,12 +1016,13 @@
                     <span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]; <span class="comment">// iv</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Hc128Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">16</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
-                   <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0xc01893d5</span>, <span class="number">0xb7dbe958</span>, <span class="number">0x8f65ec98</span>, <span class="number">0x64176604</span>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">16</span>];
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0xc01893d5</span>, <span class="number">0xb7dbe958</span>, <span class="number">0x8f65ec98</span>, <span class="number">0x64176604</span>,
                         <span class="number">0x36fc6724</span>, <span class="number">0xc82c6eec</span>, <span class="number">0x1b1c38a7</span>, <span class="number">0xc9b42a95</span>,
                         <span class="number">0x323ef123</span>, <span class="number">0x0a6a908b</span>, <span class="number">0xce757b68</span>, <span class="number">0x9f14f7bb</span>,
-                        <span class="number">0xe4cde011</span>, <span class="number">0xaeb5173f</span>, <span class="number">0x89608c94</span>, <span class="number">0xb5cf46ca</span>));
+                        <span class="number">0xe4cde011</span>, <span class="number">0xaeb5173f</span>, <span class="number">0x89608c94</span>, <span class="number">0xb5cf46ca</span>];
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1020,12 +1032,13 @@
                     <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]; <span class="comment">// iv</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Hc128Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">16</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
-                   <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0x518251a4</span>, <span class="number">0x04b4930a</span>, <span class="number">0xb02af931</span>, <span class="number">0x0639f032</span>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">16</span>];
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0x518251a4</span>, <span class="number">0x04b4930a</span>, <span class="number">0xb02af931</span>, <span class="number">0x0639f032</span>,
                         <span class="number">0xbcb4a47a</span>, <span class="number">0x5722480b</span>, <span class="number">0x2bf99f72</span>, <span class="number">0xcdc0e566</span>,
                         <span class="number">0x310f0c56</span>, <span class="number">0xd3cc83e8</span>, <span class="number">0x663db8ef</span>, <span class="number">0x62dfe07f</span>,
-                        <span class="number">0x593e1790</span>, <span class="number">0xc5ceaa9c</span>, <span class="number">0xab03806f</span>, <span class="number">0xc9a6e5a0</span>));
+                        <span class="number">0x593e1790</span>, <span class="number">0xc5ceaa9c</span>, <span class="number">0xab03806f</span>, <span class="number">0xc9a6e5a0</span>];
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1034,24 +1047,25 @@
                     <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]; <span class="comment">// iv</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Hc128Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">8</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
-                   <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0x3bfd03a073150082</span>, <span class="number">0xaa63af0efb2fd77f</span>,
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u64</span>; <span class="number">8</span>];
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>(); }
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0x3bfd03a073150082</span>, <span class="number">0xaa63af0efb2fd77f</span>,
                         <span class="number">0xa7dc29b6de122fc6</span>, <span class="number">0x8b75ec6862a68527</span>,
                         <span class="number">0x818960059036db1e</span>, <span class="number">0x491fbf9a00ade078</span>,
-                        <span class="number">0x6c3d6e241cdc3013</span>, <span class="number">0x9cd5710290f664b2</span>));
+                        <span class="number">0x6c3d6e241cdc3013</span>, <span class="number">0x9cd5710290f664b2</span>];
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
 
         <span class="comment">// The RNG operates in a P block of 512 results and next a Q block.</span>
         <span class="comment">// After skipping 2*800 u32 results we end up somewhere in the Q block</span>
         <span class="comment">// of the second round</span>
         <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">800</span> { <span class="ident">rng</span>.<span class="ident">next_u64</span>(); }
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">8</span>).<span class="ident">map</span>(<span class="op">|</span>_<span class="op">|</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>,
-                   <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0xd8c4d6ca84d0fc10</span>, <span class="number">0xf16a5d91dc66e8e7</span>,
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>(); }
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0xd8c4d6ca84d0fc10</span>, <span class="number">0xf16a5d91dc66e8e7</span>,
                         <span class="number">0xd800de5bc37a8653</span>, <span class="number">0x7bae1f88c0dfbb4c</span>,
                         <span class="number">0x3bfe1f374e6d4d14</span>, <span class="number">0x424b55676be3fa06</span>,
-                        <span class="number">0xe3a1e8758cbff579</span>, <span class="number">0x417f7198c5652bcd</span>));
+                        <span class="number">0xe3a1e8758cbff579</span>, <span class="number">0x417f7198c5652bcd</span>];
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1059,8 +1073,7 @@
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> [<span class="number">0x55</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="comment">// key</span>
                     <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]; <span class="comment">// iv</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Hc128Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
-            <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0x31</span>, <span class="number">0xf9</span>, <span class="number">0x2a</span>, <span class="number">0xb0</span>, <span class="number">0x32</span>, <span class="number">0xf0</span>, <span class="number">0x39</span>, <span class="number">0x06</span>,
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">0x31</span>, <span class="number">0xf9</span>, <span class="number">0x2a</span>, <span class="number">0xb0</span>, <span class="number">0x32</span>, <span class="number">0xf0</span>, <span class="number">0x39</span>, <span class="number">0x06</span>,
                  <span class="number">0x7a</span>, <span class="number">0xa4</span>, <span class="number">0xb4</span>, <span class="number">0xbc</span>, <span class="number">0x0b</span>, <span class="number">0x48</span>, <span class="number">0x22</span>, <span class="number">0x57</span>,
                  <span class="number">0x72</span>, <span class="number">0x9f</span>, <span class="number">0xf9</span>, <span class="number">0x2b</span>, <span class="number">0x66</span>, <span class="number">0xe5</span>, <span class="number">0xc0</span>, <span class="number">0xcd</span>,
                  <span class="number">0x56</span>, <span class="number">0x0c</span>, <span class="number">0x0f</span>, <span class="number">0x31</span>, <span class="number">0xe8</span>, <span class="number">0x83</span>, <span class="number">0xcc</span>, <span class="number">0xd3</span>,
@@ -1075,20 +1088,21 @@
                  <span class="number">0xad</span>, <span class="number">0x83</span>, <span class="number">0x6b</span>, <span class="number">0x9d</span>, <span class="number">0x60</span>, <span class="number">0xa1</span>, <span class="number">0x99</span>, <span class="number">0x96</span>,
                  <span class="number">0x90</span>, <span class="number">0x00</span>, <span class="number">0x66</span>, <span class="number">0x7f</span>, <span class="number">0xfa</span>, <span class="number">0x7e</span>, <span class="number">0x65</span>, <span class="number">0xe9</span>,
                  <span class="number">0xac</span>, <span class="number">0x8b</span>, <span class="number">0x92</span>, <span class="number">0x34</span>, <span class="number">0x77</span>, <span class="number">0xb4</span>, <span class="number">0x23</span>, <span class="number">0xd0</span>,
-                 <span class="number">0xb9</span>, <span class="number">0xab</span>, <span class="number">0xb1</span>, <span class="number">0x47</span>, <span class="number">0x7d</span>, <span class="number">0x4a</span>, <span class="number">0x13</span>, <span class="number">0x0a</span>);
+                 <span class="number">0xb9</span>, <span class="number">0xab</span>, <span class="number">0xb1</span>, <span class="number">0x47</span>, <span class="number">0x7d</span>, <span class="number">0x4a</span>, <span class="number">0x13</span>, <span class="number">0x0a</span>];
 
         <span class="comment">// Pick a somewhat large buffer so we can test filling with the</span>
         <span class="comment">// remainder from `state.results`, directly filling the buffer, and</span>
         <span class="comment">// filling the remainder of the buffer.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>(<span class="number">0u8</span>; <span class="number">16</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">2</span>);
-        <span class="comment">// Consume a value the we have a remainder.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span><span class="kw-2">*</span><span class="number">4</span><span class="kw-2">*</span><span class="number">2</span>];
+        <span class="comment">// Consume a value so that we have a remainder.</span>
         <span class="kw">let</span> _ <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>();
         <span class="ident">rng</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>);
 
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">buffer</span>.<span class="ident">iter</span>() {
-            <span class="macro">print</span><span class="macro">!</span>(<span class="string">&quot;0x{:02x}, &quot;</span>, <span class="ident">i</span>);
+        <span class="comment">// [u8; 128] doesn&#39;t implement PartialEq</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">buffer</span>.<span class="ident">len</span>(), <span class="ident">expected</span>.<span class="ident">len</span>());
+        <span class="kw">for</span> (<span class="ident">b</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">buffer</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">expected</span>.<span class="ident">iter</span>()) {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span>, <span class="ident">e</span>);
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">buffer</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

@@ -29,7 +29,7 @@
 
     <nav class="sidebar">
         <a href='../rand/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo' width='100'></a>
-        <p class='location'>Trait Rng</p><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.next_u32">next_u32</a><a href="#tymethod.next_u64">next_u64</a><a href="#tymethod.fill_bytes">fill_bytes</a><a href="#tymethod.try_fill">try_fill</a></div><a class="sidebar-title" href="#foreign-impls">Implementations on Foreign Types</a><div class="sidebar-links"><a href="#impl-Rng">Box&lt;R&gt;</a><a href="#impl-Rng">&amp;&#39;a mut R</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='index.html'>rand</a></p><script>window.sidebarCurrent = {name: 'Rng', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'>Trait Rng</p><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.next_u32">next_u32</a></div><a class="sidebar-title" href="#provided-methods">Provided Methods</a><div class="sidebar-links"><a href="#method.next_u64">next_u64</a><a href="#method.next_f32">next_f32</a><a href="#method.next_f64">next_f64</a><a href="#method.fill_bytes">fill_bytes</a><a href="#method.try_fill_bytes">try_fill_bytes</a></div><a class="sidebar-title" href="#foreign-impls">Implementations on Foreign Types</a><div class="sidebar-links"><a href="#impl-Rng">&amp;&#39;a mut R</a><a href="#impl-Rng">Box&lt;R&gt;</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='index.html'>rand</a></p><script>window.sidebarCurrent = {name: 'Rng', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -48,129 +48,170 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand_core/lib.rs.html#108-141' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../src/rand/lib.rs.html#364-491' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait Rng {
     fn <a href='#tymethod.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-<div class='item-spacer'></div>    fn <a href='#tymethod.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-<div class='item-spacer'></div>    fn <a href='#tymethod.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>);
-<div class='item-spacer'></div>    fn <a href='#tymethod.try_fill' class='fnname'>try_fill</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;;
-}</pre><div class='docblock'><p>A random number generator (not necessarily suitable for cryptography).</p>
 
-<p>&quot;Random&quot; number generators can be categorised multiple ways:</p>
+    fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> { ... }
+<div class='item-spacer'></div>    fn <a href='#method.next_f32' class='fnname'>next_f32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a> { ... }
+<div class='item-spacer'></div>    fn <a href='#method.next_f64' class='fnname'>next_f64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a> { ... }
+<div class='item-spacer'></div>    fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) { ... }
+<div class='item-spacer'></div>    fn <a href='#method.try_fill_bytes' class='fnname'>try_fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt; { ... }
+}</pre><div class='docblock'><p>A random number generator.</p>
+
+<p>This trait encapsulates the low-level functionality common to all
+generators, and is the &quot;back end&quot;, to be implemented by generators.
+Several extension traits exist:</p>
 
 <ul>
-<li>  <em>True</em> and <em>apparent</em> random number generators: <em>true</em> generators must
-depend on some phenomenon which is actually random, such as atomic decay
-or photon polarisation (note: bias may still be present, and it is
-possible that these phenomena are in fact dependent on other unseen
-parameters), while <em>apparent</em> random numbers are merely unpredictable.</li>
-<li><p><em>Algorithmic</em> and <em>external</em> generators: <em>algorithmic generators</em> can
-never produce <em>true random numbers</em> but can still yield hard-to-predict
-output. External generators may or may not use <em>true random sources</em>.</p>
-
-<p><em>Algorithmic generators</em> are also known as <em>psuedo-random number
-generators</em> or <em>PRNGs</em>.</p>
-
-<p><em>Algorithmic</em> generators are necessarily deterministic: if two
-generators using the same algorithm are initialised with the same seed,
-they will necessarily produce the same output. PRNGs should normally
-implement the <code>SeedableRng</code> trait, allowing this. To be reproducible
-across platforms, conversion of output from one type to another should
-pay special attention to endianness (we generally choose LE, e.g.
-<code>fn next_u32(&amp;mut self) -&gt; u32 { self.next_u64() as u32 }</code>).</p></li>
-<li><p><em>Cryptographically secure</em>, <em>trivially predictable</em>, and various states
-in between: if, after observing some output from an algorithmic
-generator future output of the generator can be predicted, then it is
-insecure.</p>
-
-<p>Note that all algorithmic generators eventually cycle,
-returning to previous internal state and repeating all output, but in
-good generators the period is so long that it is never reached (e.g. our
-implementation of ChaCha would produce 2<sup>134</sup> bytes of output before
-cycling, although cycles are not always so long). Predictability may not
-be a problem for games, simulations and some randomised algorithms,
-but unpredictability is essential in cryptography.</p></li>
+<li>  <a href="trait.SampleRng.html"><code>SampleRng</code></a> provides high-level generic functionality built on top of
+<code>Rng</code></li>
+<li>  <a href="trait.SeedableRng.html"><code>SeedableRng</code></a> is another &quot;back end&quot; trait covering creation and
+ seeding of algorithmic RNGs (PRNGs)</li>
+<li>  <a href="trait.NewRng.html"><code>NewRng</code></a> is a high-level trait providing a convenient way to create
+freshly-seeded PRNGs</li>
 </ul>
-
-<p>The <code>Rng</code> trait can be used for all the above types of generators. If using
-random numbers for cryptography prefer to use numbers pulled from the OS
-directly (<code>OsRng</code>) or at least use a generator implementing <code>CryptoRng</code>.
-For applications where performance is important and unpredictability is
-less critical but still somewhat important (e.g. to prevent a DoS attack),
-one may prefer to use a <code>CryptoRng</code> generator or may consider other &quot;hard
-to predict&quot; but not cryptographically proven generators.</p>
-
-<p>PRNGs are usually infallible, while external generators may fail. Since
-errors are rare and may be hard for the user to handle, most of the output
-functions do not return a <code>Result</code>; byte output can however be retrieved
-with <code>try_fill</code> which allows for the usual error handling. If the random
-source implements other output functions in terms of <code>try_fill</code> (see
-<code>impls::fill_via_try_fill</code>), then some errors will be handled implicitly,
-so long as not too many retries are needed (specifically: <code>NotReady</code> is
-handled by waiting up to 1 minute, and <code>Transient</code> is handled by retrying
-a few times). In some applications it may make sense to ensure your entropy
-source (e.g. <code>OsRng</code>) is ready by calling <code>try_fill</code> explicitly before
-using any of the other output functions.</p>
 </div>
             <h2 id='required-methods' class='small-section-header'>
               Required Methods<a href='#required-methods' class='anchor'></a>
             </h2>
             <div class='methods'>
-        <h3 id='tymethod.next_u32' class='method'><span id='next_u32.v' class='invisible'><code>fn <a href='#tymethod.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span></h3><div class='docblock'><p>Return the next random u32.</p>
-</div><h3 id='tymethod.next_u64' class='method'><span id='next_u64.v' class='invisible'><code>fn <a href='#tymethod.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span></h3><div class='docblock'><p>Return the next random u64.</p>
-</div><h3 id='tymethod.fill_bytes' class='method'><span id='fill_bytes.v' class='invisible'><code>fn <a href='#tymethod.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span></h3><div class='docblock'><p>Fill <code>dest</code> entirely with random data.</p>
+        <h3 id='tymethod.next_u32' class='method'><span id='next_u32.v' class='invisible'><code>fn <a href='#tymethod.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span></h3><div class='docblock'><p>Return the next random <code>u32</code>.</p>
 
-<p>This method does <em>not</em> have any requirement on how much of the
-generated random number stream is consumed; e.g. <code>fill_bytes_via_u64</code>
-implementation uses <code>next_u64</code> thus consuming 8 bytes even when only
-1 is required. A different implementation might use <code>next_u32</code> and
-only consume 4 bytes; <em>however</em> any change affecting <em>reproducibility</em>
-of output must be considered a breaking change.</p>
-</div><h3 id='tymethod.try_fill' class='method'><span id='try_fill.v' class='invisible'><code>fn <a href='#tymethod.try_fill' class='fnname'>try_fill</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span></h3><div class='docblock'><p>Fill <code>dest</code> entirely with random data.</p>
+<p>Implementations of this trait must implement at least one of
+<code>next_u32</code>, <code>next_u64</code> and <code>fill_bytes</code> directly. In the case this
+function is not implemented directly, it can be implemented using
+<code>self.next_u64() as u32</code> or via <code>fill_bytes</code> (TODO: expose helper
+function).</p>
+</div></div>
+            <h2 id='provided-methods' class='small-section-header'>
+              Provided Methods<a href='#provided-methods' class='anchor'></a>
+            </h2>
+            <div class='methods'>
+        <h3 id='method.next_u64' class='method'><span id='next_u64.v' class='invisible'><code>fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span></h3><div class='docblock'><p>Return the next random <code>u64</code>.</p>
 
-<p>If a RNG can encounter an error, this is the only method that reports
-it. The other methods either handle the error, or panic.</p>
+<p>Implementations of this trait must implement at least one of
+<code>next_u32</code>, <code>next_u64</code> and <code>fill_bytes</code> directly. In the case this
+function is not implemented directly, the default implementation will
+generate values via <code>next_u32</code> in little-endian fashion, or this
+function can be implemented via <code>fill_bytes</code> (TODO: expose helper
+function).</p>
 
-<p>This method does <em>not</em> have any requirement on how much of the
-generated random number stream is consumed; e.g. <code>try_fill_via_u64</code>
-implementation uses <code>next_u64</code> thus consuming 8 bytes even when only
-1 is required. A different implementation might use <code>next_u32</code> and
-only consume 4 bytes; <em>however</em> any change affecting <em>reproducibility</em>
-of output must be considered a breaking change.</p>
+<p>Types wrapping an inner RNG must not use the default implementation,
+since the inner RNG&#39;s implementation may produce different values.</p>
+</div><h3 id='method.next_f32' class='method'><span id='next_f32.v' class='invisible'><code>fn <a href='#method.next_f32' class='fnname'>next_f32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a></code></span></h3><div class='docblock'><p>Return the next random f32 selected from the half-open
+interval <code>[0, 1)</code>.</p>
+
+<p>This uses a technique described by Saito and Matsumoto at
+MCQMC&#39;08. Given that the IEEE floating point numbers are
+uniformly distributed over [1,2), we generate a number in
+this range and then offset it onto the range [0,1). Our
+choice of bits (masking v. shifting) is arbitrary and
+should be immaterial for high quality generators. For low
+quality generators (ex. LCG), prefer bitshifting due to
+correlation between sequential low order bits.</p>
+
+<p>See:
+A PRNG specialized in double precision floating point numbers using
+an affine transition</p>
+
+<ul>
+<li><a href="http://www.math.sci.hiroshima-u.ac.jp/%7Em-mat/MT/ARTICLES/dSFMT.pdf">http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/ARTICLES/dSFMT.pdf</a></li>
+<li><a href="http://www.math.sci.hiroshima-u.ac.jp/%7Em-mat/MT/SFMT/dSFMT-slide-e.pdf">http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/dSFMT-slide-e.pdf</a></li>
+</ul>
+
+<p>By default this is implemented in terms of <code>next_u32</code>, but a
+random number generator which can generate numbers satisfying
+the requirements directly can overload this for performance.
+It is required that the return value lies in <code>[0, 1)</code>.</p>
+
+<p>See <code>Closed01</code> for the closed interval <code>[0,1]</code>, and
+<code>Open01</code> for the open interval <code>(0,1)</code>.</p>
+</div><h3 id='method.next_f64' class='method'><span id='next_f64.v' class='invisible'><code>fn <a href='#method.next_f64' class='fnname'>next_f64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a></code></span></h3><div class='docblock'><p>Return the next random f64 selected from the half-open
+interval <code>[0, 1)</code>.</p>
+
+<p>By default this is implemented in terms of <code>next_u64</code>, but a
+random number generator which can generate numbers satisfying
+the requirements directly can overload this for performance.
+It is required that the return value lies in <code>[0, 1)</code>.</p>
+
+<p>See <code>Closed01</code> for the closed interval <code>[0,1]</code>, and
+<code>Open01</code> for the open interval <code>(0,1)</code>.</p>
+</div><h3 id='method.fill_bytes' class='method'><span id='fill_bytes.v' class='invisible'><code>fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span></h3><div class='docblock'><p>Fill <code>dest</code> with random data.</p>
+
+<p>Implementations of this trait must implement at least one of
+<code>next_u32</code>, <code>next_u64</code> and <code>fill_bytes</code> directly. In the case this
+function is not implemented directly, the default implementation will
+generate values via <code>next_u64</code> in little-endian fashion.
+(TODO: expose helper function to allow implementation via <code>next_u32</code>.)</p>
+
+<p>There is no requirement on how this method generates values relative to
+<code>next_u32</code> or <code>next_u64</code>; e.g. a <code>u64</code> cast to bytes is not required to
+have the same value as eight bytes filled via this function. There <em>is</em>
+a requirement of portability for reproducible generators which implies
+that any seedable generator must fix endianness when generating bytes.</p>
+
+<p>Types wrapping an inner RNG must not use the default implementation,
+since the inner RNG&#39;s implementation may produce different values.</p>
+
+<p>This method should guarantee that <code>dest</code> is entirely filled
+with new data, and may panic if this is impossible
+(e.g. reading past the end of a file that is being used as the
+source of randomness).</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">thread_rng</span>, <span class="ident">Rng</span>};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">13579</span>];
+<span class="ident">thread_rng</span>().<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">v</span>);
+<span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">v</span>[..]);</pre>
+</div><h3 id='method.try_fill_bytes' class='method'><span id='try_fill_bytes.v' class='invisible'><code>fn <a href='#method.try_fill_bytes' class='fnname'>try_fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span></h3><div class='docblock'><p>Fill <code>dest</code> entirely with random data.</p>
+
+<p>This is the only method which allows an RNG to report errors while
+generating random data; other methods either handle the error
+internally or panic. This method is
+the intended way to use external (true) RNGs, like <code>OsRng</code>. Its main
+use-cases are to generate keys and to seed (infallible) PRNGs.</p>
+
+<p>Other than error handling, this method is identical to <a href="trait.Rng.html#method.fill_bytes"><code>fill_bytes</code></a>, and
+has a default implementation simply wrapping <a href="trait.Rng.html#method.fill_bytes"><code>fill_bytes</code></a>.</p>
 </div></div>
                 <h2 id='foreign-impls' class='small-section-header'>
                   Implementations on Foreign Types<a href='#foreign-impls' class='anchor'></a>
                 </h2>
-            <h3 id='impl-Rng' class='impl'><span class='in-band'><code>impl&lt;R&gt; <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> for <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;R&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code><a href='#impl-Rng' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#187-208' title='goto source code'>[src]</a></span></h3>
-<span class='docblock autohide'><div class='impl-items'><h4 id='method.next_u32' class="method"><span id='next_u32.v-1' class='invisible'><code>fn <a href='#method.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#188-190' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.next_u64' class="method"><span id='next_u64.v-1' class='invisible'><code>fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#192-194' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.fill_bytes' class="method"><span id='fill_bytes.v-1' class='invisible'><code>fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#201-203' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.try_fill' class="method"><span id='try_fill.v-1' class='invisible'><code>fn <a href='#method.try_fill' class='fnname'>try_fill</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#205-207' title='goto source code'>[src]</a></span></h4>
-</div></span><h3 id='impl-Rng-1' class='impl'><span class='in-band'><code>impl&lt;'a, R&gt; <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a mut </a>R <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code><a href='#impl-Rng-1' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#163-184' title='goto source code'>[src]</a></span></h3>
-<span class='docblock autohide'><div class='impl-items'><h4 id='method.next_u32-1' class="method"><span id='next_u32.v-2' class='invisible'><code>fn <a href='#method.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#164-166' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.next_u64-1' class="method"><span id='next_u64.v-2' class='invisible'><code>fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#168-170' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.fill_bytes-1' class="method"><span id='fill_bytes.v-2' class='invisible'><code>fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#177-179' title='goto source code'>[src]</a></span></h4>
-<h4 id='method.try_fill-1' class="method"><span id='try_fill.v-2' class='invisible'><code>fn <a href='#method.try_fill' class='fnname'>try_fill</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand_core/lib.rs.html#181-183' title='goto source code'>[src]</a></span></h4>
+            <h3 id='impl-Rng' class='impl'><span class='in-band'><code>impl&lt;'a, R:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> for <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a mut </a>R <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a>,&nbsp;</span></code><a href='#impl-Rng' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#663-693' title='goto source code'>[src]</a></span></h3>
+<span class='docblock autohide'><div class='impl-items'><h4 id='method.next_u32' class="method"><span id='next_u32.v-1' class='invisible'><code>fn <a href='#method.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#665-667' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_u64-1' class="method"><span id='next_u64.v-1' class='invisible'><code>fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#670-672' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_f32-1' class="method"><span id='next_f32.v-1' class='invisible'><code>fn <a href='#method.next_f32' class='fnname'>next_f32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#675-677' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_f64-1' class="method"><span id='next_f64.v-1' class='invisible'><code>fn <a href='#method.next_f64' class='fnname'>next_f64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#680-682' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.fill_bytes-1' class="method"><span id='fill_bytes.v-1' class='invisible'><code>fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#685-687' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.try_fill_bytes-1' class="method"><span id='try_fill_bytes.v-1' class='invisible'><code>fn <a href='#method.try_fill_bytes' class='fnname'>try_fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#690-692' title='goto source code'>[src]</a></span></h4>
+</div></span><h3 id='impl-Rng-1' class='impl'><span class='in-band'><code>impl&lt;R:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a> for <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;R&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a>,&nbsp;</span></code><a href='#impl-Rng-1' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#696-726' title='goto source code'>[src]</a></span></h3>
+<span class='docblock autohide'><div class='impl-items'><h4 id='method.next_u32-1' class="method"><span id='next_u32.v-2' class='invisible'><code>fn <a href='#method.next_u32' class='fnname'>next_u32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#698-700' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_u64-2' class="method"><span id='next_u64.v-2' class='invisible'><code>fn <a href='#method.next_u64' class='fnname'>next_u64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#703-705' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_f32-2' class="method"><span id='next_f32.v-2' class='invisible'><code>fn <a href='#method.next_f32' class='fnname'>next_f32</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#708-710' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.next_f64-2' class="method"><span id='next_f64.v-2' class='invisible'><code>fn <a href='#method.next_f64' class='fnname'>next_f64</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#713-715' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.fill_bytes-2' class="method"><span id='fill_bytes.v-2' class='invisible'><code>fn <a href='#method.fill_bytes' class='fnname'>fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>)</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#718-720' title='goto source code'>[src]</a></span></h4>
+<h4 id='method.try_fill_bytes-2' class="method"><span id='try_fill_bytes.v-2' class='invisible'><code>fn <a href='#method.try_fill_bytes' class='fnname'>try_fill_bytes</a>(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/rand/lib.rs.html#723-725' title='goto source code'>[src]</a></span></h4>
 </div></span>
         <h2 id='implementors' class='small-section-header'>
           Implementors<a href='#implementors' class='anchor'></a>
         </h2>
         <ul class='item-list' id='implementors-list'>
-    <li><div class='out-of-band'><a class='srclink' href='../src/rand/jitter.rs.html#725-753' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/jitter/struct.JitterRng.html" title="struct rand::jitter::JitterRng">JitterRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/mock.rs.html#47-68' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/mock/struct.MockAddRng.html" title="struct rand::mock::MockAddRng">MockAddRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/chacha.rs.html#179-223' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.ChaChaRng.html" title="struct rand::prng::ChaChaRng">ChaChaRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/hc128.rs.html#283-393' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.Hc128Rng.html" title="struct rand::prng::Hc128Rng">Hc128Rng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/isaac.rs.html#206-251' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.IsaacRng.html" title="struct rand::prng::IsaacRng">IsaacRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/isaac64.rs.html#192-255' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.Isaac64Rng.html" title="struct rand::prng::Isaac64Rng">Isaac64Rng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/isaac_word.rs.html#35-56' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.IsaacWordRng.html" title="struct rand::prng::IsaacWordRng">IsaacWordRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/xorshift.rs.html#60-88' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/prng/struct.XorShiftRng.html" title="struct rand::prng::XorShiftRng">XorShiftRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/reseeding.rs.html#107-152' title='goto source code'>[src]</a></div><code>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a>, Rsdr:&nbsp;<a class="trait" href="../rand/reseeding/trait.Reseeder.html" title="trait rand::reseeding::Reseeder">Reseeder</a>&lt;R&gt;&gt; Rng for <a class="struct" href="../rand/reseeding/struct.ReseedingRng.html" title="struct rand::reseeding::ReseedingRng">ReseedingRng</a>&lt;R, Rsdr&gt;</code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/os.rs.html#55-78' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.OsRng.html" title="struct rand::OsRng">OsRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/read.rs.html#50-75' title='goto source code'>[src]</a></div><code>impl&lt;R:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt; Rng for <a class="struct" href="../rand/struct.ReadRng.html" title="struct rand::ReadRng">ReadRng</a>&lt;R&gt;</code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/thread_local.rs.html#29-50' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.ThreadRng.html" title="struct rand::ThreadRng">ThreadRng</a></code></li>
-<li><div class='out-of-band'><a class='srclink' href='../src/rand/lib.rs.html#466-483' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.StdRng.html" title="struct rand::StdRng">StdRng</a></code></li>
+    <li><div class='out-of-band'><a class='srclink' href='../src/rand/jitter.rs.html#724-743' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/jitter/struct.JitterRng.html" title="struct rand::jitter::JitterRng">JitterRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/os.rs.html#54-101' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/os/struct.OsRng.html" title="struct rand::os::OsRng">OsRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/read.rs.html#48-68' title='goto source code'>[src]</a></div><code>impl&lt;R:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt; Rng for <a class="struct" href="../rand/read/struct.ReadRng.html" title="struct rand::read::ReadRng">ReadRng</a>&lt;R&gt;</code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/reseeding.rs.html#57-81' title='goto source code'>[src]</a></div><code>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.Rng.html" title="trait rand::Rng">Rng</a>, Rsdr:&nbsp;<a class="trait" href="../rand/reseeding/trait.Reseeder.html" title="trait rand::reseeding::Reseeder">Reseeder</a>&lt;R&gt;&gt; Rng for <a class="struct" href="../rand/reseeding/struct.ReseedingRng.html" title="struct rand::reseeding::ReseedingRng">ReseedingRng</a>&lt;R, Rsdr&gt;</code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/chacha.rs.html#218-254' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.ChaChaRng.html" title="struct rand::ChaChaRng">ChaChaRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/hc128.rs.html#293-394' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.Hc128Rng.html" title="struct rand::Hc128Rng">Hc128Rng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/isaac.rs.html#216-253' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.IsaacRng.html" title="struct rand::IsaacRng">IsaacRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/isaac64.rs.html#202-256' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.Isaac64Rng.html" title="struct rand::Isaac64Rng">Isaac64Rng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/prng/xorshift.rs.html#61-81' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.XorShiftRng.html" title="struct rand::XorShiftRng">XorShiftRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/lib.rs.html#952-968' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.StdRng.html" title="struct rand::StdRng">StdRng</a></code></li>
+<li><div class='out-of-band'><a class='srclink' href='../src/rand/lib.rs.html#1032-1052' title='goto source code'>[src]</a></div><code>impl Rng for <a class="struct" href="../rand/struct.ThreadRng.html" title="struct rand::ThreadRng">ThreadRng</a></code></li>
 </ul><script type="text/javascript" async
-                         src="../implementors/rand_core/trait.Rng.js">
+                         src="../implementors/rand/trait.Rng.js">
                  </script></section>
     <section id='search' class="content hidden"></section>
 

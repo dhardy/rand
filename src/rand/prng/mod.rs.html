@@ -99,22 +99,20 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2017 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
-<span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
+<span class="comment">// https://rust-lang.org/COPYRIGHT.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
-<span class="comment">// http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
-<span class="comment">// &lt;LICENSE-MIT or http://opensource.org/licenses/MIT&gt;, at your</span>
+<span class="comment">// https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
+<span class="comment">// &lt;LICENSE-MIT or https://opensource.org/licenses/MIT&gt;, at your</span>
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
 <span class="doccomment">//! Pseudo random number generators are algorithms to produce *apparently</span>
 <span class="doccomment">//! random* numbers deterministically, and usually fairly quickly.</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! So long as the algorithm is computationally secure, is initialised with</span>
 <span class="doccomment">//! sufficient entropy (i.e. unknown by an attacker), and its internal state is</span>
 <span class="doccomment">//! also protected (unknown to an attacker), the output will also be</span>
@@ -128,39 +126,36 @@
 <span class="doccomment">//! forking a child process should reinitialise any user-space PRNGs. For this</span>
 <span class="doccomment">//! reason it may be preferable to source random numbers directly from the OS</span>
 <span class="doccomment">//! for cryptographic applications.</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! PRNGs are also widely used for non-cryptographic uses: randomised</span>
 <span class="doccomment">//! algorithms, simulations, games. In these applications it is usually not</span>
 <span class="doccomment">//! important for numbers to be cryptographically *unguessable*, but even</span>
 <span class="doccomment">//! distribution and independence from other samples (from the point of view</span>
 <span class="doccomment">//! of someone unaware of the algorithm used, at least) may still be important.</span>
 <span class="doccomment">//! Good PRNGs should satisfy these properties, but do not take them for</span>
-<span class="doccomment">//! granted; Wikipedia&#39;s article on </span>
+<span class="doccomment">//! granted; Wikipedia&#39;s article on</span>
 <span class="doccomment">//! [Pseudorandom number generators](https://en.wikipedia.org/wiki/Pseudorandom_number_generator)</span>
 <span class="doccomment">//! provides some background on this topic.</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! Care should be taken when seeding (initialising) PRNGs. Some PRNGs have</span>
 <span class="doccomment">//! short periods for some seeds. If one PRNG is seeded from another using the</span>
 <span class="doccomment">//! same algorithm, it is possible that both will yield the same sequence of</span>
 <span class="doccomment">//! values (with some lag).</span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! TODO: add some guidance on selection of a PRNG: cryptographic approval,</span>
-<span class="doccomment">//! statistical properties, performance.</span>
 
 <span class="kw">mod</span> <span class="ident">chacha</span>;
 <span class="kw">mod</span> <span class="ident">hc128</span>;
 <span class="kw">mod</span> <span class="ident">isaac</span>;
 <span class="kw">mod</span> <span class="ident">isaac64</span>;
-<span class="kw">mod</span> <span class="ident">isaac_word</span>;
 <span class="kw">mod</span> <span class="ident">xorshift</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">isaac_serde</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">chacha</span>::<span class="ident">ChaChaRng</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">hc128</span>::<span class="ident">Hc128Rng</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">isaac</span>::<span class="ident">IsaacRng</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">isaac64</span>::<span class="ident">Isaac64Rng</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">isaac_word</span>::<span class="ident">IsaacWordRng</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">xorshift</span>::<span class="ident">XorShiftRng</span>;
-</pre>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">xorshift</span>::<span class="ident">XorShiftRng</span>;</pre>
 </section>
     <section id='search' class="content hidden"></section>
 
