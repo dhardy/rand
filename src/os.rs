@@ -474,6 +474,7 @@ mod imp {
             // kern.arandom permits a maximum buffer size of 256 bytes
             for s in dest.chunks_mut(256) {
                 let mut s_len = s.len();
+                trace!("OsRng: reading {} bytes via kern.arandom", v.len());
                 let ret = unsafe {
                     libc::sysctl(mib.as_ptr(), mib.len() as libc::c_uint,
                                  s.as_mut_ptr() as *mut _, &mut s_len,
@@ -827,7 +828,7 @@ mod test {
                     thread::yield_now();
                     r.next_u64();
                     thread::yield_now();
-                    r.fill_bytes(&mut v);
+                    r.try_fill_bytes(&mut v).unwrap();
                     thread::yield_now();
                 }
             });

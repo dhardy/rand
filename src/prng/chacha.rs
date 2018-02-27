@@ -108,7 +108,8 @@ impl ChaChaRng {
     /// # Examples
     ///
     /// ```rust
-    /// use rand::{RngCore, ChaChaRng};
+    /// use rand::RngCore;
+    /// use rand::prng::ChaChaRng;
     ///
     /// let mut ra = ChaChaRng::new_unseeded();
     /// println!("{:?}", ra.next_u32());
@@ -140,7 +141,8 @@ impl ChaChaRng {
     /// # Examples
     ///
     /// ```rust
-    /// use rand::{RngCore, ChaChaRng};
+    /// use rand::RngCore;
+    /// use rand::prng::ChaChaRng;
     ///
     /// let mut rng1 = ChaChaRng::new_unseeded(); // Use `ChaChaRng::new()` or
     ///                                           // `ChaChaRng::from_rng()`
@@ -306,6 +308,11 @@ mod test {
 
         let mut rng2 = ChaChaRng::from_rng(rng1).unwrap();
         assert_eq!(rng2.next_u32(), 1325750369);
+        
+        /* TODO: from_hashable
+        let mut rng3 = ChaChaRng::from_hashable("some weak seed");
+        assert_eq!(rng3.next_u32(), 123 /*FIXME*/);
+        */
     }
 
     #[test]

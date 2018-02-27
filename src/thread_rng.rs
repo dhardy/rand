@@ -13,9 +13,8 @@
 use std::cell::UnsafeCell;
 use std::rc::Rc;
 
-use {RngCore, CryptoRng, SeedableRng, EntropyRng};
+use {RngCore, CryptoRng, SeedableRng, EntropyRng, Error};
 use prng::hc128::Hc128Core;
-use {Distribution, Uniform, Rng, Error};
 use reseeding::ReseedingRng;
 
 // Rationale for using `UnsafeCell` in `ThreadRng`:
@@ -118,57 +117,6 @@ impl RngCore for ThreadRng {
 
 impl CryptoRng for ThreadRng {}
 
-/// DEPRECATED: use `thread_rng().gen()` instead.
-///
-/// Generates a random value using the thread-local random number generator.
-///
-/// This is simply a shortcut for `thread_rng().gen()`. See [`thread_rng`] for
-/// documentation of the entropy source and [`Rand`] for documentation of
-/// distributions and type-specific generation.
-///
-/// # Examples
-///
-/// ```
-/// let x = rand::random::<u8>();
-/// println!("{}", x);
-///
-/// let y = rand::random::<f64>();
-/// println!("{}", y);
-///
-/// if rand::random() { // generates a boolean
-///     println!("Better lucky than good!");
-/// }
-/// ```
-///
-/// If you're calling `random()` in a loop, caching the generator as in the
-/// following example can increase performance.
-///
-/// ```
-/// use rand::Rng;
-///
-/// let mut v = vec![1, 2, 3];
-///
-/// for x in v.iter_mut() {
-///     *x = rand::random()
-/// }
-///
-/// // can be made faster by caching thread_rng
-///
-/// let mut rng = rand::thread_rng();
-///
-/// for x in v.iter_mut() {
-///     *x = rng.gen();
-/// }
-/// ```
-///
-/// [`thread_rng`]: fn.thread_rng.html
-/// [`Rand`]: trait.Rand.html
-#[deprecated(since="0.5.0", note="removed in favor of thread_rng().gen()")]
-#[inline]
-pub fn random<T>() -> T where Uniform: Distribution<T> {
-    thread_rng().gen()
-}
-
 #[cfg(test)]
 mod test {
     #[test]
@@ -177,26 +125,6 @@ mod test {
         use Rng;
         let mut r = ::thread_rng();
         r.gen::<i32>();
-        let mut v = [1, 1, 1];
-        r.shuffle(&mut v);
-        let b: &[_] = &[1, 1, 1];
-        assert_eq!(v, b);
         assert_eq!(r.gen_range(0, 1), 0);
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn test_random() {
-        use super::random;
-        // not sure how to test this aside from just getting some values
-        let _n : usize = random();
-        let _f : f32 = random();
-        let _o : Option<Option<i8>> = random();
-        let _many : ((),
-                     (usize,
-                      isize,
-                      Option<(u32, (bool,))>),
-                     (u8, i8, u16, i16, u32, i32, u64, i64),
-                     (f32, (f64, (f64,)))) = random();
     }
 }

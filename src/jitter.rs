@@ -580,7 +580,6 @@ impl JitterRng {
         // The number of rounds `measure_jitter` should run to collect 64 bits
         // of entropy is `64 / bits_of_entropy`.
         let delta_average = delta_sum / TESTLOOPCOUNT;
-
         if delta_average >= 16 {
             let log2 = 64 - delta_average.leading_zeros();
             // Do something similar to roundup(64/(log2/2)):

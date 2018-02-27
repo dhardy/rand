@@ -7,8 +7,10 @@ const RAND_BENCH_N: u64 = 1000;
 
 use test::{black_box, Bencher};
 
-use rand::{SeedableRng, SmallRng, Rng, thread_rng};
+use rand::{SeedableRng, SmallRng, thread_rng};
 use rand::seq::*;
+use rand::sequences::Shuffle;
+
 
 #[bench]
 fn misc_gen_bool(b: &mut Bencher) {
@@ -41,7 +43,7 @@ fn misc_shuffle_100(b: &mut Bencher) {
     let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
     let x : &mut [usize] = &mut [1; 100];
     b.iter(|| {
-        rng.shuffle(x);
+        x.shuffle(&mut rng);
         black_box(&x);
     })
 }

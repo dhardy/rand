@@ -353,7 +353,6 @@ mod test {
 
     #[test]
     fn test_isaac64_construction() {
-        // Test that various construction techniques produce a working RNG.
         let seed = [1,0,0,0, 23,0,0,0, 200,1,0,0, 210,30,0,0,
                     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
         let mut rng1 = Isaac64Rng::from_seed(seed);
@@ -361,8 +360,13 @@ mod test {
 
         let mut rng2 = Isaac64Rng::from_rng(rng1).unwrap();
         assert_eq!(rng2.next_u64(), 919595328260451758);
-    }
 
+        /* TODO: from_hashable
+        let mut rng3 = Isaac64Rng::from_hashable("some weak seed");
+        assert_eq!(rng3.next_u64(), 123 /*FIXME*/);
+        */
+    }
+    
     #[test]
     fn test_isaac64_true_values_64() {
         let seed = [1,0,0,0, 0,0,0,0, 23,0,0,0, 0,0,0,0,

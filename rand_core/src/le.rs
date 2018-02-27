@@ -15,6 +15,20 @@
 
 use core::ptr;
 
+/// Read a `u32` from a byte sequence, in litte-endian order
+/// 
+/// Consider usage with the `arrayref` crate.
+pub fn read_u32(bytes: &[u8; 4]) -> u32 {
+    unsafe{ *(bytes as *const [u8; 4] as *const u32) }.to_le()
+}
+
+/// Read a `u64` from a byte sequence, in litte-endian order
+/// 
+/// Consider usage with the `arrayref` crate.
+pub fn read_u64(bytes: &[u8; 8]) -> u64 {
+    unsafe{ *(bytes as *const [u8; 8] as *const u64) }.to_le()
+}
+
 macro_rules! read_slice {
     ($src:expr, $dst:expr, $size:expr, $which:ident) => {{
         assert_eq!($src.len(), $size * $dst.len());
@@ -47,6 +61,9 @@ pub fn read_u64_into(src: &[u8], dst: &mut [u64]) {
 
 #[test]
 fn test_read() {
+    assert_eq!(read_u32(&[1, 2, 3, 4]), 0x04030201);
+    assert_eq!(read_u64(&[1, 2, 3, 4, 5, 6, 7, 8]), 0x0807060504030201);
+    
     let bytes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     
     let mut buf = [0u32; 4];

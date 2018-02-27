@@ -385,6 +385,11 @@ mod test {
 
         let mut rng2 = IsaacRng::from_rng(rng1).unwrap();
         assert_eq!(rng2.next_u32(), 3094074039);
+
+        /* TODO: from_hashable
+        let mut rng3 = IsaacRng::from_hashable("some weak seed");
+        rng3.next_u32();
+        */
     }
 
     #[test]

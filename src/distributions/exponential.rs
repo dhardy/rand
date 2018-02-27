@@ -10,7 +10,7 @@
 
 //! The exponential distribution.
 
-use {Rng};
+use {Rng, RngCore};
 use distributions::{ziggurat, ziggurat_tables, Distribution};
 
 /// Samples floating-point numbers according to the exponential distribution,
@@ -42,13 +42,13 @@ pub struct Exp1;
 // This could be done via `-rng.gen::<f64>().ln()` but that is slower.
 impl Distribution<f64> for Exp1 {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> f64 {
         #[inline]
         fn pdf(x: f64) -> f64 {
             (-x).exp()
         }
         #[inline]
-        fn zero_case<R: Rng + ?Sized>(rng: &mut R, _u: f64) -> f64 {
+        fn zero_case<R: RngCore + ?Sized>(rng: &mut R, _u: f64) -> f64 {
             ziggurat_tables::ZIG_EXP_R - rng.gen::<f64>().ln()
         }
 
@@ -90,7 +90,7 @@ impl Exp {
 }
 
 impl Distribution<f64> for Exp {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> f64 {
         let n: f64 = rng.sample(Exp1);
         n * self.lambda_inverse
     }

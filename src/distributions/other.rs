@@ -12,7 +12,7 @@
 
 use core::char;
 
-use {Rng};
+use {Rng, RngCore};
 use distributions::{Distribution, Uniform, Range};
 
 // ----- Sampling distributions -----
@@ -42,7 +42,7 @@ pub struct Alphanumeric;
 
 impl Distribution<char> for Uniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> char {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> char {
         let range = Range::new(0u32, 0x11_0000);
         loop {
             match char::from_u32(range.sample(rng)) {
@@ -56,7 +56,7 @@ impl Distribution<char> for Uniform {
 }
 
 impl Distribution<char> for Alphanumeric {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> char {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> char {
         const RANGE: u32 = 26 + 26 + 10;
         const GEN_ASCII_STR_CHARSET: &'static [u8] =
             b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
@@ -77,7 +77,7 @@ impl Distribution<char> for Alphanumeric {
 
 impl Distribution<bool> for Uniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> bool {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> bool {
         // We can compare against an arbitrary bit of an u32 to get a bool.
         // Because the least significant bits of a lower quality RNG can have
         // simple patterns, we compare against the most significant bit. This is
@@ -96,7 +96,7 @@ macro_rules! tuple_impl {
             where $( Uniform: Distribution<$tyvar> ),*
         {
             #[inline]
-            fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> ( $( $tyvar ),* , ) {
+            fn sample<R: RngCore + ?Sized>(&self, mut _rng: &mut R) -> ( $( $tyvar ),* , ) {
                 (
                     // use the $tyvar's to get the appropriate number of
                     // repeats (they're not actually needed)
@@ -112,7 +112,7 @@ macro_rules! tuple_impl {
 
 impl Distribution<()> for Uniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, _: &mut R) -> () { () }
+    fn sample<R: RngCore + ?Sized>(&self, _: &mut R) -> () { () }
 }
 tuple_impl!{A}
 tuple_impl!{A, B}
@@ -134,7 +134,7 @@ macro_rules! array_impl {
 
         impl<T> Distribution<[T; $n]> for Uniform where Uniform: Distribution<T> {
             #[inline]
-            fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> [T; $n] {
+            fn sample<R: RngCore + ?Sized>(&self, mut _rng: &mut R) -> [T; $n] {
                 [_rng.gen::<$t>(), $(_rng.gen::<$ts>()),*]
             }
         }
@@ -142,7 +142,7 @@ macro_rules! array_impl {
     // empty case:
     {$n:expr,} => {
         impl<T> Distribution<[T; $n]> for Uniform {
-            fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> [T; $n] { [] }
+            fn sample<R: RngCore + ?Sized>(&self, _rng: &mut R) -> [T; $n] { [] }
         }
     };
 }
@@ -151,7 +151,7 @@ array_impl!{32, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T
 
 impl<T> Distribution<Option<T>> for Uniform where Uniform: Distribution<T> {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Option<T> {
+    fn sample<R: RngCore + ?Sized>(&self, rng: &mut R) -> Option<T> {
         // UFCS is needed here: https://github.com/rust-lang/rust/issues/24066
         if rng.gen::<bool>() {
             Some(rng.gen())

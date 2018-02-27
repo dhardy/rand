@@ -35,6 +35,7 @@ extern crate rand;
 use rand::Rng;
 use rand::distributions::{Distribution, Range};
 use rand::distributions::range::RangeInt;
+use rand::sequences::Choose;
 
 struct SimulationResult {
     win: bool,
@@ -65,7 +66,7 @@ fn simulate<R: Rng>(random_door: &Range<RangeInt<u32>>, rng: &mut R)
 // where the car is. The game host will never open the door with the car.
 fn game_host_open<R: Rng>(car: u32, choice: u32, rng: &mut R) -> u32 {
     let choices = free_doors(&[car, choice]);
-    rand::seq::sample_slice(rng, &choices, 1)[0]
+    *choices[..].choose(rng).unwrap()
 }
 
 // Returns the door we switch to, given our current choice and

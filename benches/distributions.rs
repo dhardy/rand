@@ -9,7 +9,8 @@ const RAND_BENCH_N: u64 = 1000;
 use std::mem::size_of;
 use test::{black_box, Bencher};
 
-use rand::{Rng, NewRng, XorShiftRng};
+use rand::{Rng, NewRng};
+use rand::prng::XorShiftRng;
 use rand::distributions::*;
 
 macro_rules! distr_int {
