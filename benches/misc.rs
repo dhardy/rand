@@ -5,7 +5,7 @@ extern crate rand;
 
 use test::{black_box, Bencher};
 
-use rand::{Rng, RngCore, weak_rng};
+use rand::{Rng, RngCore, weak_rng, thread_rng};
 use rand::seq::*;
 
 #[bench]
@@ -64,7 +64,7 @@ sample_indices!(misc_sample_indices_100_of_1k, 100, 1000);
 #[bench]
 fn gen_1k_iter_repeat(b: &mut Bencher) {
     use std::iter;
-    let mut rng = weak_rng();
+    let mut rng = thread_rng();
     b.iter(|| {
         let v: Vec<u32> = iter::repeat(()).map(|()| rng.next_u32()).take(256).collect();
         black_box(v);
@@ -75,7 +75,7 @@ fn gen_1k_iter_repeat(b: &mut Bencher) {
 #[allow(deprecated)]
 #[bench]
 fn gen_1k_gen_iter(b: &mut Bencher) {
-    let mut rng = weak_rng();
+    let mut rng = thread_rng();
     b.iter(|| {
         let v: Vec<u32> = rng.gen_iter().take(256).collect();
         black_box(v);
@@ -84,18 +84,8 @@ fn gen_1k_gen_iter(b: &mut Bencher) {
 }
 
 #[bench]
-fn gen_1k_iter1(b: &mut Bencher) {
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let v: Vec<u32> = rng.iter().take(256).map(|rng| rng.next_u32()).collect();
-        black_box(v);
-    });
-    b.bytes = 1024;
-}
-
-#[bench]
-fn gen_1k_iter2(b: &mut Bencher) {
-    let mut rng = weak_rng();
+fn gen_1k_iter(b: &mut Bencher) {
+    let mut rng = thread_rng();
     b.iter(|| {
         let v: Vec<u32> = rng.iter().map(|rng| rng.next_u32()).take(256).collect();
         black_box(v);
@@ -105,11 +95,43 @@ fn gen_1k_iter2(b: &mut Bencher) {
 
 #[bench]
 fn gen_1k_fill(b: &mut Bencher) {
-    let mut rng = weak_rng();
+    let mut rng = thread_rng();
     let mut buf = [0u32; 256];
     b.iter(|| {
         rng.fill(&mut buf[..]);
         black_box(buf);
+    });
+    b.bytes = 1024;
+}
+
+#[bench]
+fn gen_1k_f32_iter_repeat(b: &mut Bencher) {
+    use std::iter;
+    let mut rng = thread_rng();
+    b.iter(|| {
+        let v: Vec<f32> = iter::repeat(()).map(|()| rng.gen()).take(256).collect();
+        black_box(v);
+    });
+    b.bytes = 1024;
+}
+
+#[allow(deprecated)]
+#[bench]
+fn gen_1k_f32_gen_iter(b: &mut Bencher) {
+    let mut rng = thread_rng();
+    b.iter(|| {
+        let v: Vec<f32> = rng.gen_iter().take(256).collect();
+        black_box(v);
+    });
+    b.bytes = 1024;
+}
+
+#[bench]
+fn gen_1k_f32_iter(b: &mut Bencher) {
+    let mut rng = thread_rng();
+    b.iter(|| {
+        let v: Vec<f32> = rng.iter().map(|rng| rng.gen()).take(256).collect();
+        black_box(v);
     });
     b.bytes = 1024;
 }
