@@ -33,6 +33,7 @@ winapi = { version = "0.3", features = ["minwindef", "ntsecapi", "profileapi", "
 
 [dependencies]
 rand-core = { path = 'rand-core', default-features = false }
+rand-derive = { version = "0.5.0-pre.0", path = "rand-derive" }
 
 log = { version = "0.4", optional = true }
 
