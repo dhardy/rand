@@ -10,6 +10,7 @@
 
 //! Basic floating-point number distributions
 
+use std::cell::Cell;
 use core::{cmp, mem};
 use Rng;
 use distributions::{Distribution, Uniform};
@@ -56,6 +57,11 @@ pub(crate) trait IntoFloat {
     /// [2<sup>0</sup>..2<sup>1</sup>), which is [1..2).
     #[inline(always)]
     fn into_float_with_exponent(self, exponent: i32) -> Self::F;
+}
+
+thread_local! {
+    static C1: Cell<usize> = Cell::new(0);
+    static C2: Cell<usize> = Cell::new(0);
 }
 
 macro_rules! float_impls {
@@ -123,6 +129,7 @@ macro_rules! float_impls {
                 // Unusual case. Separate function to allow inlining of rest.
                 #[inline(never)]
                 fn fallback<R: Rng + ?Sized>(mut exp: i32, fraction: $uty, rng: &mut R) -> $ty {
+                    C2.with(|c| c.set(c.get() + 1));
                     // Performance impact of code here is negligible.
                     let bits = rng.gen::<$uty>();
                     exp += bits.trailing_zeros() as i32;
@@ -142,6 +149,7 @@ macro_rules! float_impls {
                 let fraction = value & fraction_mask;
                 let remaining = value >> $fraction_bits;
                 if remaining == 0 {
+                    C1.with(|c| c.set(c.get() + 1));
                     // exp is compile-time constant so this reduces to a function call:
                     let size_bits = (mem::size_of::<$ty>() * 8) as i32;
                     let exp = (size_bits - $fraction_bits as i32) + 1;
@@ -204,11 +212,14 @@ mod tests {
     #[cfg(feature="std")] mod mean {
         use {Rng, SmallRng, SeedableRng, thread_rng};
         use distributions::{Uniform, HighPrecision01};
+        use super::super::{C1, C2};
         
         macro_rules! test_mean {
             ($name:ident, $ty:ty, $distr:expr) => {
         #[test]
         fn $name() {
+            C1.with(|c| c.set(0));
+            C2.with(|c| c.set(0));
             // TODO: no need to &mut here:
             let mut rng = SmallRng::from_rng(&mut thread_rng()).unwrap();
             let mut total: $ty = 0.0;
@@ -217,8 +228,11 @@ mod tests {
                 total += rng.sample::<$ty, _>($distr);
             }
             let avg = total / (N as $ty);
-            //println!("average over {} samples: {}", N, avg);
+            println!("average over {} samples: {}", N, avg);
+            C1.with(|c| println!("C1: {}", c.get()));
+            C2.with(|c| println!("C2: {}", c.get()));
             assert!(0.499 < avg && avg < 0.501);
+            assert!(false);
         }
         } }
 
