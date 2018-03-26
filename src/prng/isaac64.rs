@@ -353,6 +353,7 @@ mod test {
 
     #[test]
     fn test_isaac64_construction() {
+        // Test that various construction techniques produce a working RNG.
         let seed = [1,0,0,0, 23,0,0,0, 200,1,0,0, 210,30,0,0,
                     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
         let mut rng1 = Isaac64Rng::from_seed(seed);

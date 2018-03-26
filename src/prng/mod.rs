@@ -39,9 +39,6 @@
 //! short periods for some seeds. If one PRNG is seeded from another using the
 //! same algorithm, it is possible that both will yield the same sequence of
 //! values (with some lag).
-//! 
-//! TODO: add some guidance on selection of a PRNG: cryptographic approval,
-//! statistical properties, performance.
 
 pub mod chacha;
 pub mod hc128;
