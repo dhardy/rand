@@ -129,35 +129,92 @@ impl ChaChaRng {
         ChaChaRng::from_seed([0; SEED_WORDS*4])
     }
 
-    /// Sets the internal 128-bit ChaCha counter to a user-provided value. This
-    /// permits jumping arbitrarily ahead (or backwards) in the pseudorandom
-    /// stream.
-    ///
-    /// The 128 bits used for the counter overlap with the nonce and smaller
-    /// counter of ChaCha when used as a stream cipher. It is in theory possible
-    /// to use `set_counter` to obtain the conventional ChaCha pseudorandom
-    /// stream associated with a particular nonce. This is not a supported use
-    /// of the RNG, because a nonce set that way is not treated as a constant
-    /// value but still as part of the counter, besides endian issues.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rand::{ChaChaRng, RngCore, SeedableRng};
-    ///
-    /// // Note: Use `FromEntropy` or `ChaChaRng::from_rng()` outside of testing.
-    /// let mut rng1 = ChaChaRng::from_seed([0; 32]);
-    /// let mut rng2 = rng1.clone();
-    ///
-    /// // Skip to round 20. Because every round generates 16 `u32` values, this
-    /// // actually means skipping 320 values.
-    /// for _ in 0..(20*16) { rng1.next_u32(); }
-    /// rng2.set_counter(20, 0);
-    /// assert_eq!(rng1.next_u32(), rng2.next_u32());
-    /// ```
-    pub fn set_counter(&mut self, counter_low: u64, counter_high: u64) {
-        self.0.inner_mut().set_counter(counter_low, counter_high);
-        self.0.reset(); // force recomputation on next use
+    /// Get the low 64-bits of the counter.
+    /// 
+    /// Note that the low 32-bits of the counter are sufficient to produce
+    /// 256 GiB of data and 64-bits are enough to produce 1 ZiB of data
+    /// (2<sup>70</sup> bytes), thus 64-bits are sufficient unless one also
+    /// wants to read a nonce.
+    /// 
+    /// If only the low 32-bits of the counter are wanted, simply cast:
+    /// `get_counter() as u32`.
+    pub fn get_counter(&self) -> u64 {
+        let core = self.0.inner();
+        core.state[12] as u64 + ((core.state[13] as u64) << 32)
+    }
+
+    /// Get the full 128-bit counter.
+    /// 
+    /// The upper half of this counter is likely to be zero unless a nonce has
+    /// been set, therefore `get_counter()` will usually suffice.
+    #[cfg(feature="i128_support")]
+    pub fn get_counter_128(&self) -> u128 {
+        let core = self.0.inner();
+        let low = core.state[12] as u64
+            + ((core.state[13] as u64) << 32);
+        let high = core.state[14] as u64
+            + ((core.state[15] as u64) << 32);
+        low as u128 + ((high as u128) << 64)
+    }
+
+    /// Set the counter.
+    /// 
+    /// Note that this sets the full 128-bit counter by setting the upper
+    /// 64-bits to zero. If setting a nonce, do so *after* setting the counter.
+    pub fn set_counter(&mut self, counter: u64) {
+        let core = self.0.inner_mut();
+        core.state[12] = counter as u32;
+        core.state[13] = (counter >> 32) as u32;
+        core.state[14] = 0;
+        core.state[15] = 0;
+    }
+
+    /// Set the full counter.
+    #[cfg(feature="i128_support")]
+    pub fn set_counter_128(&mut self, counter: u128) {
+        let core = self.0.inner_mut();
+        core.state[12] = counter as u32;
+        core.state[13] = (counter >> 32) as u32;
+        core.state[14] = (counter >> 64) as u32;
+        core.state[15] = (counter >> 96) as u32;
+    }
+
+    /// Set a 64-bit nonce.
+    /// 
+    /// The original ChaCha cipher takes a 64-bit counter and 64-bit nonce.
+    /// Output can be replicated by setting the counter (if non-zero) then
+    /// calling this function with the nonce.
+    /// 
+    /// It is possible to achieve the same result with a single call to
+    /// `set_counter_128`, but in that case be careful of Endianness when
+    /// converting the nonce.
+    pub fn set_nonce_64(&mut self, nonce: [u8; 8]) {
+        let mut nonce_le = [0u32; 2];
+        le::read_u32_into(&nonce, &mut nonce_le);
+        let core = self.0.inner_mut();
+        core.state[14] = nonce_le[0];
+        core.state[15] = nonce_le[1];
+    }
+
+    /// Set a 96-bit nonce.
+    /// 
+    /// The IETF ChaCha cipher standard takes a 32-bit counter and 96-bit nonce.
+    /// Output can be replicated by setting the counter (if non-zero) then
+    /// calling this function with the nonce, though note that after 256 GiB of
+    /// output the low 32-bits of the nonce will be incremented and this RNG
+    /// will continue to produce output, instead of terminating as the IETF
+    /// cipher would.
+    /// 
+    /// It is possible to achieve the same result with a single call to
+    /// `set_counter_128`, but in that case be careful of Endianness when
+    /// converting the nonce.
+    pub fn set_nonce_96(&mut self, nonce: [u8; 12]) {
+        let mut nonce_le = [0u32; 3];
+        le::read_u32_into(&nonce, &mut nonce_le);
+        let core = self.0.inner_mut();
+        core.state[13] = nonce_le[0];
+        core.state[14] = nonce_le[1];
+        core.state[15] = nonce_le[2];
     }
 
     /// Sets the number of rounds to run the ChaCha core algorithm per block to
@@ -256,16 +313,6 @@ impl BlockRngCore for ChaChaCore {
 }
 
 impl ChaChaCore {
-    /// Sets the internal 128-bit ChaCha counter to a user-provided value. This
-    /// permits jumping arbitrarily ahead (or backwards) in the pseudorandom
-    /// stream.
-    pub fn set_counter(&mut self, counter_low: u64, counter_high: u64) {
-        self.state[12] = counter_low as u32;
-        self.state[13] = (counter_low >> 32) as u32;
-        self.state[14] = counter_high as u32;
-        self.state[15] = (counter_high >> 32) as u32;
-    }
-
     /// Sets the number of rounds to run the ChaCha core algorithm per block to
     /// generate.
     pub fn set_rounds(&mut self, rounds: usize) {
@@ -377,7 +424,7 @@ mod test {
 
         // Test block 2 by using `set_counter`
         let mut rng2 = ChaChaRng::from_seed(seed);
-        rng2.set_counter(2, 0);
+        rng2.set_counter(2);
         for i in results.iter_mut() { *i = rng2.next_u32(); }
         assert_eq!(results, expected);
     }
@@ -417,14 +464,12 @@ mod test {
     }
 
     #[test]
-    fn test_chacha_set_counter() {
+    fn test_chacha_nonce() {
         // Test vector 5 from
         // https://tools.ietf.org/html/draft-nir-cfrg-chacha20-poly1305-04
-        // Although we do not support setting a nonce, we try it here anyway so
-        // we can use this test vector.
         let seed = [0u8; 32];
         let mut rng = ChaChaRng::from_seed(seed);
-        rng.set_counter(0, 2u64 << 56);
+        rng.set_nonce_96([0,0,0,0, 0,0,0,0, 0,0,0,2]);
 
         let mut results = [0u32; 16];
         for i in results.iter_mut() { *i = rng.next_u32(); }
