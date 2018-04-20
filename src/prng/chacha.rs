@@ -38,11 +38,12 @@ const STATE_WORDS: usize = 16;
 /// number of rounds can be set using [`set_rounds`].
 ///
 /// We deviate slightly from the ChaCha specification regarding the nonce and
-/// the counter. Instead of a 64-bit nonce and 64-bit counter (or a 96-bit nonce
-/// and 32-bit counter in the IETF variant [3]), we use a 128-bit counter. This
-/// is because a nonce does not give a meaningful advantage for ChaCha when used
-/// as an RNG. The modification is provably as strong as the original cipher,
-/// though, since any distinguishing attack on our variant also works against
+/// the counter, whose individual sizes are fixed at construction time; this
+/// supports a 64-bit nonce and 64-bit counter, or a 96-bit nonce and 32-bit
+/// counter (as in the IETF variant [3]), or a 32-bit nonce and 96-bit counter,
+/// or just a 128-bit counter. When used as an RNG, a nonce does not necessarily
+/// benefit ChaCha. This modification is provably as strong as the original
+/// cipher, since any distinguishing attack on our variant also works against
 /// ChaCha with a chosen nonce.
 ///
 /// The modified word layout is:
@@ -129,66 +130,74 @@ impl ChaChaRng {
         ChaChaRng::from_seed([0; SEED_WORDS*4])
     }
 
-    /// Get the low 64-bits of the counter.
-    /// 
-    /// Note that the low 32-bits of the counter are sufficient to produce
-    /// 256 GiB of data and 64-bits are enough to produce 1 ZiB of data
-    /// (2<sup>70</sup> bytes), thus 64-bits are sufficient unless one also
-    /// wants to read a nonce.
-    /// 
-    /// If only the low 32-bits of the counter are wanted, simply cast:
-    /// `get_counter() as u32`.
-    pub fn get_counter(&self) -> u64 {
+    /// Get the offset from the start of the stream, in bytes.
+    ///
+    /// This returns an error only if the result is not representable in the
+    /// 128-bit return value.
+    #[cfg(feature = "i128_support")]
+    pub fn get_offset(&self) -> Result<u128, ()> {
+        let mut c = 0;
         let core = self.0.inner();
-        core.state[12] as u64 + ((core.state[13] as u64) << 32)
+        if core.csize > 3 {
+            c = core.state[15] as u128;
+            if c >= (1 << (32-6)) {
+                return Err(()); // not representable
+            }
+            c <<= 32;
+        }
+        if core.csize > 2 {
+            c |= core.state[14] as u128;
+            c <<= 32;
+        }
+        if core.csize > 1 {
+            c |= core.state[13] as u128;
+            c <<= 32;
+        }
+        c |= core.state[12] as u128;
+        let mut index = self.0.index();
+        // c is the end of the last block generated, unless index is at end
+        if index >= STATE_WORDS {
+            index = 0;
+        } else {
+            c -= 1;
+        }
+        // buffer is 16 words each of 4 bytes:
+        (c << 6) | (index << 2)
     }
 
-    /// Get the full 128-bit counter.
-    /// 
-    /// The upper half of this counter is likely to be zero unless a nonce has
-    /// been set, therefore `get_counter()` will usually suffice.
-    #[cfg(feature="i128_support")]
-    pub fn get_counter_128(&self) -> u128 {
+    /// Set the offset from the start of the stream, in bytes.
+    #[cfg(feature = "i128_support")]
+    pub fn set_offset(&mut self, offset: u128) -> Result<(), ()> {
         let core = self.0.inner();
-        let low = core.state[12] as u64
-            + ((core.state[13] as u64) << 32);
-        let high = core.state[14] as u64
-            + ((core.state[15] as u64) << 32);
-        low as u128 + ((high as u128) << 64)
-    }
-
-    /// Set the counter.
-    /// 
-    /// Note that this sets the full 128-bit counter by setting the upper
-    /// 64-bits to zero. If setting a nonce, do so *after* setting the counter.
-    pub fn set_counter(&mut self, counter: u64) {
-        let core = self.0.inner_mut();
+        if (offset & 0x3) || (128 - offset.leading_zeros() - 6 > 32 * core.csize) {
+            return Err(()); // offset not representable
+        }
+        let index = ((offset as u32) >> 2) & 0xF;
+        let mut counter = offset >> 6;
         core.state[12] = counter as u32;
-        core.state[13] = (counter >> 32) as u32;
-        core.state[14] = 0;
-        core.state[15] = 0;
+        if core.csize > 1 {
+            core.state[13] = (counter >> 32) as u32;
+            if core.csize > 2 {
+                core.state[14] = (counter >> 64) as u32;
+                if core.csize > 3 {
+                    core.state[15] = (counter >> 96) as u32;
+                }
+            }
+        }
+        if index != 0 {
+            core.generate();    // also increments counter
+        } else {
+            index = STATE_WORDS;
+        }
+        self.0.set_index(index);
     }
 
-    /// Set the full counter.
-    #[cfg(feature="i128_support")]
-    pub fn set_counter_128(&mut self, counter: u128) {
-        let core = self.0.inner_mut();
-        core.state[12] = counter as u32;
-        core.state[13] = (counter >> 32) as u32;
-        core.state[14] = (counter >> 64) as u32;
-        core.state[15] = (counter >> 96) as u32;
-    }
-
-    /// Set a 64-bit nonce.
-    /// 
-    /// The original ChaCha cipher takes a 64-bit counter and 64-bit nonce.
-    /// Output can be replicated by setting the counter (if non-zero) then
-    /// calling this function with the nonce.
-    /// 
-    /// It is possible to achieve the same result with a single call to
-    /// `set_counter_128`, but in that case be careful of Endianness when
-    /// converting the nonce.
-    pub fn set_nonce_64(&mut self, nonce: [u8; 8]) {
+    /// Set a nonce from a byte slice. The length of the slice must correspond
+    /// to the length of the nonce set during construction (which by default is
+    /// zero length).
+    pub fn set_nonce(&mut self, nonce: &[u8]) {
+        assert_eq!(nonce.len(), (4 - self.csize) * 4);
+        // TODO: improve code
         let mut nonce_le = [0u32; 2];
         le::read_u32_into(&nonce, &mut nonce_le);
         let core = self.0.inner_mut();
@@ -216,36 +225,14 @@ impl ChaChaRng {
         core.state[14] = nonce_le[1];
         core.state[15] = nonce_le[2];
     }
-
-    /// Sets the number of rounds to run the ChaCha core algorithm per block to
-    /// generate.
-    ///
-    /// By default this is set to 20. Other recommended values are 12 and 8,
-    /// which trade security for performance. `rounds` only supports values
-    /// that are multiples of 4 and less than or equal to 20.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rand::{ChaChaRng, RngCore, SeedableRng};
-    ///
-    /// // Note: Use `FromEntropy` or `ChaChaRng::from_rng()` outside of testing.
-    /// let mut rng = ChaChaRng::from_seed([0; 32]);
-    /// rng.set_rounds(8);
-    ///
-    /// assert_eq!(rng.next_u32(), 0x2fef003e);
-    /// ```
-    pub fn set_rounds(&mut self, rounds: usize) {
-        self.0.inner_mut().set_rounds(rounds);
-        self.0.reset(); // force recomputation on next use
-    }
 }
 
 /// The core of `ChaChaRng`, used with `BlockRng`.
 #[derive(Clone)]
 pub struct ChaChaCore {
     state: [u32; STATE_WORDS],
-    rounds:  usize,
+    rounds:  u32,
+    csize: u32, // counter size, in words, from 1 to 4
 }
 
 // Custom Debug implementation that does not expose the internal state
@@ -288,7 +275,7 @@ impl BlockRngCore for ChaChaCore {
         // improves performance by 50%.
         fn core(results: &mut [u32; STATE_WORDS],
                 state: &[u32; STATE_WORDS],
-                rounds: usize)
+                rounds: u32)
         {
             let mut tmp = *state;
             for _ in 0..rounds / 2 {
@@ -303,21 +290,12 @@ impl BlockRngCore for ChaChaCore {
 
         // update 128-bit counter
         self.state[12] = self.state[12].wrapping_add(1);
-        if self.state[12] != 0 { return; };
+        if self.state[12] != 0 || self.csize < 2 { return; };
         self.state[13] = self.state[13].wrapping_add(1);
-        if self.state[13] != 0 { return; };
+        if self.state[13] != 0 || self.csize < 3 { return; };
         self.state[14] = self.state[14].wrapping_add(1);
-        if self.state[14] != 0 { return; };
+        if self.state[14] != 0 || self.csize < 4 { return; };
         self.state[15] = self.state[15].wrapping_add(1);
-    }
-}
-
-impl ChaChaCore {
-    /// Sets the number of rounds to run the ChaCha core algorithm per block to
-    /// generate.
-    pub fn set_rounds(&mut self, rounds: usize) {
-        assert!([4usize, 8, 12, 16, 20].iter().any(|x| *x == rounds));
-        self.rounds = rounds;
     }
 }
 
@@ -333,11 +311,82 @@ impl SeedableRng for ChaChaCore {
                     seed_le[4], seed_le[5], seed_le[6], seed_le[7], // seed
                     0, 0, 0, 0], // counter
             rounds: 20,
+            csize: 4,
          }
     }
 }
 
 impl CryptoRng for ChaChaCore {}
+
+impl From<ChaChaCore> for ChaChaRng {
+    fn from(core: ChaChaCore) -> Self {
+        ChaChaRng(BlockRng::new(core))
+    }
+}
+
+/// A builder type allowing extra parameterisation of ChaCha.
+///
+/// Construct using `SeedableRng` as normal.
+///
+/// # Example
+///
+/// ```rust
+/// let mut rng: ChaChaRng =
+///     ChaChaBuilder::from_seed([0u8; 64])
+///         .set_rounds(12)
+///         .set_counter_size(64)
+///         .into().into();
+/// rng.set_stream(12345);
+/// ```
+pub struct ChaChaBuilder {
+    core: ChaChaCore,
+}
+
+impl ChaChaBuilder {
+    /// Set the number of rounds.
+    ///
+    /// The default variant is ChaCha20, using 20 rounds. Published variants
+    /// use 8 or 12 rounds, where 8 is the smallest number of rounds for which
+    /// ChaCha has not been broken, with more rounds improving security at the
+    /// cost of speed.
+    ///
+    /// The number of rounds must be even.
+    pub fn set_rounds(mut self, rounds: u32) -> Self {
+        assert!(rounds & 1 == 0);
+        self.core.rounds = rounds;
+        self
+    }
+    
+    /// Set the size of the counter.
+    ///
+    /// By default we use the maximum counter size of 128 bits; also supported
+    /// are 32, 64 and 96 bits.
+    ///
+    /// Each counter value corresponds to a block of 16 4-byte words, thus the
+    /// cycle length is 2<sup>(counter size) + 6</sup> bytes. The generator
+    /// does not detect cycles.
+    pub fn set_counter_size(mut self, size_bits: u32) -> Self {
+        assert!([32, 64, 96, 128].iter().any(|size| *size == size_bits));
+        self.core.csize = size_bits / 32;
+        self
+    }
+}
+
+impl SeedableRng for ChaChaBuilder {
+    type Seed = [u8; SEED_WORDS*4];
+
+    fn from_seed(seed: Self::Seed) -> Self {
+        ChaChaBuilder {
+            core: ChaChaCore::from_seed(seed)
+        }
+    }
+}
+
+impl From<ChaChaBuilder> for ChaChaCore {
+    fn from(builder: ChaChaBuilder) -> Self {
+        self.core
+    }
+}
 
 #[cfg(test)]
 mod test {

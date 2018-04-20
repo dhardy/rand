@@ -227,9 +227,20 @@ impl<R: BlockRngCore> BlockRng<R> {
     pub fn inner_mut(&mut self) -> &mut R {
         &mut self.core
     }
+    
+    /// Get the index into the result buffer
+    pub fn index(&self) -> usize {
+        self.index
+    }
+    
+    /// Set the index into the result buffer
+    pub fn set_index(&mut self, index: usize) {
+        assert!(index < self.results.as_ref().len());
+        self.index = index;
+    }
 
-    // Reset the number of available results.
-    // This will force a new set of results to be generated on next use.
+    /// Reset the number of available results.
+    /// This will force a new set of results to be generated on next use.
     pub fn reset(&mut self) {
         self.index = self.results.as_ref().len();
     }
