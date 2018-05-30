@@ -10,6 +10,8 @@
 
 //! The normal and derived distributions.
 
+use core::ops::{Add, Mul};
+use num_traits::cast::FromPrimitive;
 use Rng;
 use distributions::{ziggurat, ziggurat_tables, Distribution, Open01};
 
@@ -88,12 +90,12 @@ impl Distribution<f64> for StandardNormal {
 /// println!("{} is from a N(2, 9) distribution", v)
 /// ```
 #[derive(Clone, Copy, Debug)]
-pub struct Normal {
-    mean: f64,
-    std_dev: f64,
+pub struct Normal<FP> {
+    mean: FP,
+    std_dev: FP,
 }
 
-impl Normal {
+impl<FP: PartialOrd + FromPrimitive> Normal<FP> {
     /// Construct a new `Normal` distribution with the given mean and
     /// standard deviation.
     ///
@@ -101,18 +103,22 @@ impl Normal {
     ///
     /// Panics if `std_dev < 0`.
     #[inline]
-    pub fn new(mean: f64, std_dev: f64) -> Normal {
-        assert!(std_dev >= 0.0, "Normal::new called with `std_dev` < 0");
+    pub fn new(mean: FP, std_dev: FP) -> Normal<FP> {
+        assert!(std_dev >= FromPrimitive::from_f64(0.0).unwrap(),
+            "Normal::new called with `std_dev` < 0");
         Normal {
             mean,
             std_dev
         }
     }
 }
-impl Distribution<f64> for Normal {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f64 {
+
+impl<FP> Distribution<FP> for Normal<FP>
+where FP: Copy + Add<Output=FP> + Mul<Output=FP> + FromPrimitive
+{
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> FP {
         let n = rng.sample(StandardNormal);
-        self.mean + self.std_dev * n
+        self.mean + self.std_dev * FromPrimitive::from_f64(n).unwrap()
     }
 }
 
@@ -134,7 +140,7 @@ impl Distribution<f64> for Normal {
 /// ```
 #[derive(Clone, Copy, Debug)]
 pub struct LogNormal {
-    norm: Normal
+    norm: Normal<f64>
 }
 
 impl LogNormal {
@@ -169,6 +175,14 @@ mod tests {
             norm.sample(&mut rng);
         }
     }
+    
+    #[test]
+    fn test_normal32() {
+        let norm = Normal::new(5.0f32, 10f32);
+        let mut rng = ::test::rng(212);
+        norm.sample(&mut rng);
+    }
+    
     #[test]
     #[should_panic]
     fn test_normal_invalid_sd() {
