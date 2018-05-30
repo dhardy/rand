@@ -11,7 +11,7 @@
 //! The normal and derived distributions.
 
 use core::ops::{Add, Mul};
-use num_traits::cast::FromPrimitive;
+use num_traits::cast::AsPrimitive;
 use Rng;
 use distributions::{ziggurat, ziggurat_tables, Distribution, Open01};
 
@@ -95,7 +95,7 @@ pub struct Normal<FP> {
     std_dev: FP,
 }
 
-impl<FP: PartialOrd + FromPrimitive> Normal<FP> {
+impl<FP: Copy + PartialOrd + 'static> Normal<FP> where f64: AsPrimitive<FP> {
     /// Construct a new `Normal` distribution with the given mean and
     /// standard deviation.
     ///
@@ -104,8 +104,7 @@ impl<FP: PartialOrd + FromPrimitive> Normal<FP> {
     /// Panics if `std_dev < 0`.
     #[inline]
     pub fn new(mean: FP, std_dev: FP) -> Normal<FP> {
-        assert!(std_dev >= FromPrimitive::from_f64(0.0).unwrap(),
-            "Normal::new called with `std_dev` < 0");
+        assert!(std_dev >= 0.0.as_(), "Normal::new called with `std_dev` < 0");
         Normal {
             mean,
             std_dev
@@ -113,12 +112,12 @@ impl<FP: PartialOrd + FromPrimitive> Normal<FP> {
     }
 }
 
-impl<FP> Distribution<FP> for Normal<FP>
-where FP: Copy + Add<Output=FP> + Mul<Output=FP> + FromPrimitive
+impl<FP: 'static> Distribution<FP> for Normal<FP>
+where FP: Copy + Add<Output=FP> + Mul<Output=FP>, f64: AsPrimitive<FP>
 {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> FP {
         let n = rng.sample(StandardNormal);
-        self.mean + self.std_dev * FromPrimitive::from_f64(n).unwrap()
+        self.mean + self.std_dev * n.as_()
     }
 }
 
