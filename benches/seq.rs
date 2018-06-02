@@ -33,7 +33,7 @@ fn seq_slice_choose_multiple_1_of_1000(b: &mut Bencher) {
     let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
     let x : &[usize] = &[1; 1000];
     b.iter(|| {
-        x.choose_multiple(&mut rng, 1).cloned().next()
+        x.choose_multiple(&mut rng, 1, true).cloned().next()
     })
 }
 
@@ -43,7 +43,7 @@ fn seq_slice_choose_multiple_10_of_100(b: &mut Bencher) {
     let x : &[usize] = &[1; 100];
     let mut buf = [0; 10];
     b.iter(|| {
-        for (v, slot) in x.choose_multiple(&mut rng, buf.len()).zip(buf.iter_mut()) {
+        for (v, slot) in x.choose_multiple(&mut rng, buf.len(), true).zip(buf.iter_mut()) {
             *slot = *v;
         }
         buf
@@ -84,7 +84,7 @@ macro_rules! sample_indices {
         fn $name(b: &mut Bencher) {
             let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
             b.iter(|| {
-                $fn(&mut rng, $length, $amount)
+                $fn(&mut rng, $length, $amount, true)
             })
         }
     }
