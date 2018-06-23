@@ -559,7 +559,7 @@ mod test {
         }
         for count in chosen.iter() {
             let err = *count - 1000 / 9;
-            assert!(-25 <= err && err <= 25);
+            assert!(err.abs() <= 30);
         }
 
         assert_eq!((0..0).choose(&mut r), None);
