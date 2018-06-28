@@ -237,7 +237,7 @@
 #![cfg_attr(feature = "stdweb", recursion_limit="128")]
 
 #[cfg(feature="std")] extern crate std as core;
-#[cfg(all(feature = "alloc", not(feature="std")))] extern crate alloc;
+#[cfg(all(feature = "alloc", not(feature="std")))] #[macro_use] extern crate alloc;
 
 #[cfg(test)] #[cfg(feature="serde1")] extern crate bincode;
 #[cfg(feature="serde1")] extern crate serde;
