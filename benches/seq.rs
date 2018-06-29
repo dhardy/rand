@@ -1,4 +1,5 @@
 #![feature(test)]
+#![allow(non_snake_case)]
 
 extern crate test;
 extern crate rand;
@@ -78,17 +79,21 @@ fn seq_iter_choose_multiple_fill_10_of_100(b: &mut Bencher) {
 }
 
 macro_rules! sample_indices {
-    ($name:ident, $amount:expr, $length:expr) => {
+    ($name:ident, $fn:ident, $amount:expr, $length:expr) => {
         #[bench]
         fn $name(b: &mut Bencher) {
             let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
             b.iter(|| {
-                sample_indices(&mut rng, $length, $amount)
+                $fn(&mut rng, $length, $amount)
             })
         }
     }
 }
 
-sample_indices!(seq_sample_indices_10_of_1k, 10, 1000);
-sample_indices!(seq_sample_indices_50_of_1k, 50, 1000);
-sample_indices!(seq_sample_indices_100_of_1k, 100, 1000);
+sample_indices!(misc_sample_indices_1_of_1k, sample_indices, 1, 1000);
+sample_indices!(misc_sample_indices_10_of_1k, sample_indices, 10, 1000);
+sample_indices!(misc_sample_indices_100_of_1k, sample_indices, 100, 1000);
+sample_indices!(misc_sample_indices_100_of_1M, sample_indices, 100, 1000_000);
+sample_indices!(misc_sample_indices_100_of_1G, sample_indices, 100, 1000_000_000);
+sample_indices!(misc_sample_indices_400_of_1G, sample_indices, 400, 1000_000_000);
+sample_indices!(misc_sample_indices_600_of_1G, sample_indices, 600, 1000_000_000);
