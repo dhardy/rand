@@ -28,27 +28,23 @@ fn seq_slice_choose_1_of_1000(b: &mut Bencher) {
     })
 }
 
-#[bench]
-fn seq_slice_choose_multiple_1_of_1000(b: &mut Bencher) {
-    let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
-    let x : &[usize] = &[1; 1000];
-    b.iter(|| {
-        x.choose_multiple(&mut rng, 1, true).cloned().next()
-    })
+macro_rules! seq_slice_choose_multiple {
+    ($name:ident, $amount:expr, $length:expr) => {
+        #[bench]
+        fn $name(b: &mut Bencher) {
+            let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
+            let x : &[usize] = &[$amount; $length];
+            b.iter(|| {
+                x.choose_multiple(&mut rng, $amount, false).cloned().next()
+            })
+        }
+    }
 }
 
-#[bench]
-fn seq_slice_choose_multiple_10_of_100(b: &mut Bencher) {
-    let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
-    let x : &[usize] = &[1; 100];
-    let mut buf = [0; 10];
-    b.iter(|| {
-        for (v, slot) in x.choose_multiple(&mut rng, buf.len(), true).zip(buf.iter_mut()) {
-            *slot = *v;
-        }
-        buf
-    })
-}
+seq_slice_choose_multiple!(seq_slice_choose_multiple_1_of_1000, 1, 1000);
+seq_slice_choose_multiple!(seq_slice_choose_multiple_950_of_1000, 950, 1000);
+seq_slice_choose_multiple!(seq_slice_choose_multiple_10_of_100, 10, 100);
+seq_slice_choose_multiple!(seq_slice_choose_multiple_90_of_100, 90, 100);
 
 #[bench]
 fn seq_iter_choose_from_100(b: &mut Bencher) {
@@ -84,7 +80,7 @@ macro_rules! sample_indices {
         fn $name(b: &mut Bencher) {
             let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
             b.iter(|| {
-                $fn(&mut rng, $length, $amount, true)
+                $fn(&mut rng, $length, $amount, false)
             })
         }
     }
