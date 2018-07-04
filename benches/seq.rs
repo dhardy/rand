@@ -33,9 +33,14 @@ macro_rules! seq_slice_choose_multiple {
         #[bench]
         fn $name(b: &mut Bencher) {
             let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
-            let x : &[usize] = &[$amount; $length];
+            let x : &[i32] = &[$amount; $length];
+            let mut result = [0i32; $amount];
             b.iter(|| {
-                x.choose_multiple(&mut rng, $amount, false).cloned().next()
+                for (slot, sample) in result.iter_mut().zip(
+                    x.choose_multiple(&mut rng, $amount, false)) {
+                    *slot = *sample;
+                }
+                result[$amount-1]
             })
         }
     }
