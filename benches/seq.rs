@@ -50,6 +50,7 @@ seq_slice_choose_multiple!(seq_slice_choose_multiple_1_of_1000, 1, 1000);
 seq_slice_choose_multiple!(seq_slice_choose_multiple_950_of_1000, 950, 1000);
 seq_slice_choose_multiple!(seq_slice_choose_multiple_10_of_100, 10, 100);
 seq_slice_choose_multiple!(seq_slice_choose_multiple_90_of_100, 90, 100);
+seq_slice_choose_multiple!(seq_slice_choose_multiple_1k_of_1M, 1000, 1000_000);
 
 #[bench]
 fn seq_iter_choose_from_100(b: &mut Bencher) {
@@ -85,7 +86,7 @@ macro_rules! sample_indices {
         fn $name(b: &mut Bencher) {
             let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
             b.iter(|| {
-                $fn(&mut rng, $length, $amount, false)
+                $fn(&mut rng, $length, $amount, false).collect::<Vec<_>>()
             })
         }
     }
