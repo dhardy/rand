@@ -52,6 +52,10 @@ impl SeedableRng for IsaacRng {
     fn from_seed(seed: Self::Seed) -> Self {
         IsaacRng(prng::IsaacRng::from_seed(seed))
     }
+    
+    fn seed_from_u64(seed: u64) -> Self {
+        IsaacRng(prng::IsaacRng::seed_from_u64(seed))
+    }
 
     fn from_rng<R: RngCore>(rng: R) -> Result<Self, Error> {
         prng::IsaacRng::from_rng(rng).map(IsaacRng)
@@ -97,6 +101,10 @@ impl SeedableRng for Isaac64Rng {
 
     fn from_seed(seed: Self::Seed) -> Self {
         Isaac64Rng(prng::Isaac64Rng::from_seed(seed))
+    }
+
+    fn seed_from_u64(seed: u64) -> Self {
+        Isaac64Rng(prng::Isaac64Rng::seed_from_u64(seed))
     }
 
     fn from_rng<R: RngCore>(rng: R) -> Result<Self, Error> {
