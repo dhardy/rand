@@ -365,7 +365,7 @@ pub mod read {
 
 use core::{mem, slice};
 use distributions::{Distribution, Standard};
-use distributions::uniform::{SampleUniform, UniformSampler, SampleBorrow};
+use distributions::uniform::{SampleUniform, SampleBorrow};
 
 /// An automatically-implemented extension trait on [`RngCore`] providing high-level
 /// generic methods for sampling values and other convenience methods.
@@ -453,7 +453,7 @@ pub trait Rng: RngCore {
     fn gen_range<T: SampleUniform, B1, B2>(&mut self, low: B1, high: B2) -> T
         where B1: SampleBorrow<T> + Sized,
               B2: SampleBorrow<T> + Sized {
-        T::Sampler::sample_single(low, high, self)
+        T::sample_single(low, high, self)
     }
 
     /// Sample a new value, using the given distribution.

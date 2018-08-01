@@ -92,7 +92,7 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
         if total_weight == zero {
             return Err(WeightedError::AllWeightsZero);
         }
-        let distr = X::Sampler::new(zero, total_weight);
+        let distr = X::new(zero, total_weight);
 
         Ok(WeightedIndex { cumulative_weights: weights, weight_distribution: distr })
     }
