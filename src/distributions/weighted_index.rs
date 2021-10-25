@@ -93,36 +93,52 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
     /// if its total value is 0.
     ///
     /// [`Uniform<X>`]: crate::distributions::uniform::Uniform
+    #[inline]
     pub fn new<I>(weights: I) -> Result<WeightedIndex<X>, WeightedError>
     where
         I: IntoIterator,
-        I::IntoIter: ExactSizeIterator,
         I::Item: SampleBorrow<X>,
         X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
     {
-        let iter = weights.into_iter();
+        Self::from_weights(weights
+            .into_iter()
+            .map(|x| x.borrow().clone())
+            .collect())
+    }
+
+    /// Construct from a [`Vec`] of weights
+    ///
+    /// The weights can use any type `X` for which an
+    /// implementation of [`Uniform<X>`] exists.
+    ///
+    /// Returns an error if the iterator is empty, if any weight is `< 0`, or
+    /// if its total value is 0.
+    ///
+    /// [`Uniform<X>`]: crate::distributions::uniform::Uniform
+    pub fn from_weights(mut weights: Vec<X>) -> Result<WeightedIndex<X>, WeightedError>
+    where
+        X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
+    {
         let zero = <X as Default>::default();
-
         let mut accumulator = zero.clone();
-        let mut cumulative_weights = Vec::new();
-        cumulative_weights.resize(iter.len(), zero.clone());
 
-        for (w, c) in iter.zip(cumulative_weights.iter_mut()) {
+        for w in weights.iter_mut() {
             // Note that `!(w >= x)` is not equivalent to `w < x` for partially
             // ordered types due to NaNs which are equal to nothing.
-            if !(w.borrow() >= &zero) {
+            if !(*w >= zero) {
                 return Err(WeightedError::InvalidWeight);
             }
-            accumulator += w.borrow();
-            *c = accumulator.clone();
+            accumulator += w;
+            *w = accumulator.clone();
         }
 
-        if cumulative_weights.is_empty() {
+        if weights.is_empty() {
             return Err(WeightedError::NoItem);
         } else if accumulator == zero {
             return Err(WeightedError::AllWeightsZero);
         }
 
+        let cumulative_weights = weights;
         let weight_distribution = X::Sampler::new(zero, accumulator.clone());
 
         Ok(WeightedIndex { cumulative_weights, weight_distribution })
