@@ -97,36 +97,38 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
     pub fn new<I>(weights: I) -> Result<WeightedIndex<X>, WeightedError>
     where
         I: IntoIterator,
+        I::IntoIter: ExactSizeIterator,
         I::Item: SampleBorrow<X>,
         X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
     {
         let mut iter = weights.into_iter();
-        let mut total_weight: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
+        let mut accumulator: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
 
         let zero = <X as Default>::default();
-        if !(total_weight >= zero) {
+        if !(accumulator >= zero) {
             return Err(WeightedError::InvalidWeight);
         }
 
-        let mut weights = Vec::<X>::with_capacity(iter.size_hint().0);
-        for w in iter {
+        let mut weights = Vec::new();
+        weights.resize(iter.len(), zero.clone());
+        for (w, c) in iter.zip(weights.iter_mut()) {
             // Note that `!(w >= x)` is not equivalent to `w < x` for partially
             // ordered types due to NaNs which are equal to nothing.
             if !(w.borrow() >= &zero) {
                 return Err(WeightedError::InvalidWeight);
             }
-            weights.push(total_weight.clone());
-            total_weight += w.borrow();
+            *c = accumulator.clone();
+            accumulator += w.borrow();
         }
 
-        if total_weight == zero {
+        if accumulator == zero {
             return Err(WeightedError::AllWeightsZero);
         }
-        let distr = X::Sampler::new(zero, total_weight.clone());
+        let distr = X::Sampler::new(zero, accumulator.clone());
 
         Ok(WeightedIndex {
             cumulative_weights: weights,
-            total_weight,
+            total_weight: accumulator,
             weight_distribution: distr,
         })
     }
@@ -486,6 +488,7 @@ mod test {
             weights: I, buf: &mut [usize], expected: &[usize],
         ) where
             I: IntoIterator,
+            I::IntoIter: ExactSizeIterator,
             I::Item: SampleBorrow<X>,
             X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
         {
