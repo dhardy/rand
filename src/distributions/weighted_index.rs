@@ -152,31 +152,28 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
     {
         let mut iter = weights.into_iter();
 
-        if iter.len() != self.cumulative_weights.len() + 1 {
-            return Err(WeightedError::LenMismatch);
-        }
-
-        let mut total_weight: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
+        let mut accumulator: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
         let zero = <X as Default>::default();
 
-        if !(total_weight >= zero) {
+        let mut weight_error = !(accumulator >= zero);
+
+        self.cumulative_weights.resize(iter.len(), zero.clone());
+        for (w, c) in iter.zip(self.cumulative_weights.iter_mut()) {
+            weight_error |= !(w.borrow() >= &zero);
+            *c = accumulator.clone();
+            accumulator += w.borrow();
+        }
+
+        if weight_error {
             return Err(WeightedError::InvalidWeight);
         }
 
-        for (w, c) in iter.zip(self.cumulative_weights.iter_mut()) {
-            if !(w.borrow() >= &zero) {
-                return Err(WeightedError::InvalidWeight);
-            }
-            *c = total_weight.clone();
-            total_weight += w.borrow();
-        }
-
-        if total_weight == zero {
+        if accumulator == zero {
             return Err(WeightedError::AllWeightsZero);
         };
 
-        self.weight_distribution = X::Sampler::new(zero, total_weight.clone());
-        self.total_weight = total_weight;
+        self.weight_distribution = X::Sampler::new(zero, accumulator.clone());
+        self.total_weight = accumulator;
         Ok(())
     }
 
@@ -473,11 +470,6 @@ mod test {
     fn assigning_error_states() {
         {
             let mut distr = WeightedIndex::new(&[1.0f64, 2.0, 3.0, 0.0][..]).unwrap();
-            let res = distr.assign_new_weights(&[1.0f64, 2.0, 3.0][..]);
-            assert_eq!(res, Err(WeightedError::LenMismatch));
-        }
-        {
-            let mut distr = WeightedIndex::new(&[1.0f64, 2.0, 3.0, 0.0][..]).unwrap();
             let res = distr.assign_new_weights(&[1.0f64, 2.0, ::core::f64::NAN, 0.0][..]);
             assert_eq!(res, Err(WeightedError::InvalidWeight));
         }
@@ -535,10 +527,6 @@ pub enum WeightedError {
 
     /// Too many weights are provided (length greater than `u32::MAX`)
     TooMany,
-
-    /// Have to provide exactly as many weights when assigning as were present when constructing
-    /// the weighted index.
-    LenMismatch,
 }
 
 #[cfg(feature = "std")]
@@ -551,7 +539,6 @@ impl fmt::Display for WeightedError {
             WeightedError::InvalidWeight => "A weight is invalid in distribution",
             WeightedError::AllWeightsZero => "All weights are zero in distribution",
             WeightedError::TooMany => "Too many weights (hit u32::MAX) in distribution",
-            WeightedError::LenMismatch => "Length mismatch between previous and provided weights",
         })
     }
 }
