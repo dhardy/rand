@@ -11,7 +11,7 @@
 extern crate test;
 
 use rand::distributions::WeightedIndex;
-use rand::Rng;
+use rand::{Rng, SeedableRng};
 use test::Bencher;
 
 #[bench]
@@ -65,4 +65,13 @@ fn weighted_index_modification(b: &mut Bencher) {
         distr.update_weights(&[(2, &4), (5, &1)]).unwrap();
         rng.sample(&distr)
     })
+}
+
+#[bench]
+fn weighted_index_sample(b: &mut Bencher) {
+    let mut rng = rand::rngs::SmallRng::from_entropy();
+    let weights = &[1u32, 2, 4, 0, 5, 1, 7, 1, 2, 3, 4, 5, 6, 7][..];
+    let distr = WeightedIndex::new(weights).unwrap();
+    b.iter(|| rng.sample(&distr) | rng.sample(&distr) | rng.sample(&distr) | rng.sample(&distr));
+    b.bytes = 4 * std::mem::size_of::<i32>() as u64;
 }
