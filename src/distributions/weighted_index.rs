@@ -81,7 +81,6 @@ use serde::{Serialize, Deserialize};
 #[cfg_attr(doc_cfg, doc(cfg(feature = "alloc")))]
 pub struct WeightedIndex<X: SampleUniform + PartialOrd> {
     cumulative_weights: Vec<X>,
-    total_weight: X,
     weight_distribution: X::Sampler,
 }
 
@@ -101,36 +100,32 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
         I::Item: SampleBorrow<X>,
         X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
     {
-        let mut iter = weights.into_iter();
-        let mut accumulator: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
-
+        let iter = weights.into_iter();
         let zero = <X as Default>::default();
-        if !(accumulator >= zero) {
-            return Err(WeightedError::InvalidWeight);
-        }
 
-        let mut weights = Vec::new();
-        weights.resize(iter.len(), zero.clone());
-        for (w, c) in iter.zip(weights.iter_mut()) {
+        let mut accumulator = zero.clone();
+        let mut cumulative_weights = Vec::new();
+        cumulative_weights.resize(iter.len(), zero.clone());
+
+        for (w, c) in iter.zip(cumulative_weights.iter_mut()) {
             // Note that `!(w >= x)` is not equivalent to `w < x` for partially
             // ordered types due to NaNs which are equal to nothing.
             if !(w.borrow() >= &zero) {
                 return Err(WeightedError::InvalidWeight);
             }
-            *c = accumulator.clone();
             accumulator += w.borrow();
+            *c = accumulator.clone();
         }
 
-        if accumulator == zero {
+        if cumulative_weights.is_empty() {
+            return Err(WeightedError::NoItem);
+        } else if accumulator == zero {
             return Err(WeightedError::AllWeightsZero);
         }
-        let distr = X::Sampler::new(zero, accumulator.clone());
 
-        Ok(WeightedIndex {
-            cumulative_weights: weights,
-            total_weight: accumulator,
-            weight_distribution: distr,
-        })
+        let weight_distribution = X::Sampler::new(zero, accumulator.clone());
+
+        Ok(WeightedIndex { cumulative_weights, weight_distribution })
     }
 
     /// Reuses the weighted index by assigning a new set of weights without changing the number of
@@ -152,30 +147,29 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
         I::Item: SampleBorrow<X>,
         X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
     {
-        let mut iter = weights.into_iter();
-
-        let mut accumulator: X = iter.next().ok_or(WeightedError::NoItem)?.borrow().clone();
+        let iter = weights.into_iter();
         let zero = <X as Default>::default();
-
-        let mut weight_error = !(accumulator >= zero);
+        let mut accumulator = zero.clone();
 
         self.cumulative_weights.resize(iter.len(), zero.clone());
+
         for (w, c) in iter.zip(self.cumulative_weights.iter_mut()) {
-            weight_error |= !(w.borrow() >= &zero);
-            *c = accumulator.clone();
+            // Note that `!(w >= x)` is not equivalent to `w < x` for partially
+            // ordered types due to NaNs which are equal to nothing.
+            if !(w.borrow() >= &zero) {
+                return Err(WeightedError::InvalidWeight);
+            }
             accumulator += w.borrow();
+            *c = accumulator.clone();
         }
 
-        if weight_error {
-            return Err(WeightedError::InvalidWeight);
-        }
-
-        if accumulator == zero {
+        if self.cumulative_weights.is_empty() {
+            return Err(WeightedError::NoItem);
+        } else if accumulator == zero {
             return Err(WeightedError::AllWeightsZero);
-        };
+        }
 
         self.weight_distribution = X::Sampler::new(zero, accumulator.clone());
-        self.total_weight = accumulator;
         Ok(())
     }
 
@@ -199,7 +193,7 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
 
         let zero = <X as Default>::default();
 
-        let mut total_weight = self.total_weight.clone();
+        let mut total_weight = self.cumulative_weights.last().cloned().unwrap();
 
         // Check for errors first, so we don't modify `self` in case something
         // goes wrong.
@@ -213,15 +207,11 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
             if !(*w >= zero) {
                 return Err(WeightedError::InvalidWeight);
             }
-            if i > self.cumulative_weights.len() {
+            if i >= self.cumulative_weights.len() {
                 return Err(WeightedError::TooMany);
             }
 
-            let mut old_w = if i < self.cumulative_weights.len() {
-                self.cumulative_weights[i].clone()
-            } else {
-                self.total_weight.clone()
-            };
+            let mut old_w = self.cumulative_weights[i].clone();
             if i > 0 {
                 old_w -= &self.cumulative_weights[i - 1];
             }
@@ -261,9 +251,12 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
             prev_weight = cumulative_weight.clone();
             core::mem::swap(&mut prev_weight, &mut self.cumulative_weights[i]);
         }
+        #[cfg(debug_assertions)]
+        if self.cumulative_weights.last().cloned().unwrap() != total_weight {
+            panic!("last element not equal total");
+        }
 
-        self.total_weight = total_weight;
-        self.weight_distribution = X::Sampler::new(zero, self.total_weight.clone());
+        self.weight_distribution = X::Sampler::new(zero, total_weight);
 
         Ok(())
     }
@@ -276,7 +269,7 @@ where X: SampleUniform + PartialOrd
         use ::core::cmp::Ordering;
         let chosen_weight = self.weight_distribution.sample(rng);
         // Find the first item which has a weight *higher* than the chosen weight.
-        self.cumulative_weights
+        self.cumulative_weights[..self.cumulative_weights.len() - 1]
             .binary_search_by(|w| {
                 if *w <= chosen_weight {
                     Ordering::Less
@@ -427,14 +420,13 @@ mod test {
         for (weights, update, expected_weights) in data.iter() {
             let total_weight = weights.iter().sum::<u32>();
             let mut distr = WeightedIndex::new(weights.to_vec()).unwrap();
-            assert_eq!(distr.total_weight, total_weight);
+            assert_eq!(*distr.cumulative_weights.last().unwrap(), total_weight);
 
             distr.update_weights(update).unwrap();
             let expected_total_weight = expected_weights.iter().sum::<u32>();
             let expected_distr = WeightedIndex::new(expected_weights.to_vec()).unwrap();
-            assert_eq!(distr.total_weight, expected_total_weight);
-            assert_eq!(distr.total_weight, expected_distr.total_weight);
             assert_eq!(distr.cumulative_weights, expected_distr.cumulative_weights);
+            assert_eq!(*distr.cumulative_weights.last().unwrap(), expected_total_weight);
         }
     }
 
@@ -454,17 +446,16 @@ mod test {
         for &(weights, new_weights) in data.iter() {
             let total_weight = weights.iter().sum::<u32>();
             let mut distr = WeightedIndex::new(weights.to_vec()).unwrap();
-            assert_eq!(distr.total_weight, total_weight);
+            assert_eq!(*distr.cumulative_weights.last().unwrap(), total_weight);
 
             distr.assign_new_weights(weights).unwrap();
-            assert_eq!(distr.total_weight, total_weight);
+            assert_eq!(*distr.cumulative_weights.last().unwrap(), total_weight);
 
             let new_total_weight = new_weights.iter().sum::<u32>();
             let new_distr = WeightedIndex::new(new_weights.to_vec()).unwrap();
             distr.assign_new_weights(new_weights).unwrap();
-            assert_eq!(new_total_weight, new_distr.total_weight);
-            assert_eq!(new_total_weight, distr.total_weight);
-            assert_eq!(new_distr.cumulative_weights, distr.cumulative_weights);
+            assert_eq!(distr.cumulative_weights, new_distr.cumulative_weights);
+            assert_eq!(*distr.cumulative_weights.last().unwrap(), new_total_weight);
         }
     }
 
