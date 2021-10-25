@@ -13,7 +13,6 @@ use crate::distributions::Distribution;
 use crate::Rng;
 use core::cmp::PartialOrd;
 use core::fmt;
-use core::iter::ExactSizeIterator;
 
 // Note that this whole module is only imported if feature="alloc" is enabled.
 use alloc::vec::Vec;
@@ -144,6 +143,14 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
         Ok(WeightedIndex { cumulative_weights, weight_distribution })
     }
 
+    /// Take the internal vector of cumulative weights
+    ///
+    /// The last element is the sum of all input weights.
+    #[inline]
+    pub fn take_cumulative_weights(self) -> Vec<X> {
+        self.cumulative_weights
+    }
+
     /// Reuses the weighted index by assigning a new set of weights without changing the number of
     /// weights.
     ///
@@ -163,29 +170,11 @@ impl<X: SampleUniform + PartialOrd> WeightedIndex<X> {
         I::Item: SampleBorrow<X>,
         X: for<'a> ::core::ops::AddAssign<&'a X> + Clone + Default,
     {
-        let iter = weights.into_iter();
-        let zero = <X as Default>::default();
-        let mut accumulator = zero.clone();
-
-        self.cumulative_weights.resize(iter.len(), zero.clone());
-
-        for (w, c) in iter.zip(self.cumulative_weights.iter_mut()) {
-            // Note that `!(w >= x)` is not equivalent to `w < x` for partially
-            // ordered types due to NaNs which are equal to nothing.
-            if !(w.borrow() >= &zero) {
-                return Err(WeightedError::InvalidWeight);
-            }
-            accumulator += w.borrow();
-            *c = accumulator.clone();
-        }
-
-        if self.cumulative_weights.is_empty() {
-            return Err(WeightedError::NoItem);
-        } else if accumulator == zero {
-            return Err(WeightedError::AllWeightsZero);
-        }
-
-        self.weight_distribution = X::Sampler::new(zero, accumulator.clone());
+        let mut v = Vec::new();
+        std::mem::swap(&mut v, &mut self.cumulative_weights);
+        v.clear();
+        v.extend(weights.into_iter().map(|x| x.borrow().clone()));
+        *self = WeightedIndex::from_weights(v)?;
         Ok(())
     }
 
@@ -443,49 +432,6 @@ mod test {
             let expected_distr = WeightedIndex::new(expected_weights.to_vec()).unwrap();
             assert_eq!(distr.cumulative_weights, expected_distr.cumulative_weights);
             assert_eq!(*distr.cumulative_weights.last().unwrap(), expected_total_weight);
-        }
-    }
-
-    #[test]
-    fn test_assign_new_weights() {
-        let data = [
-            (
-                &[10u32, 2, 3, 4][..],
-                &[10, 100, 4, 4][..],
-            ),
-            (
-                &[1u32, 2, 3, 0, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7][..],
-                &[1u32, 2, 1, 0, 5, 1, 7, 1, 2, 3, 4, 5, 6, 100][..],
-            ),
-        ];
-
-        for &(weights, new_weights) in data.iter() {
-            let total_weight = weights.iter().sum::<u32>();
-            let mut distr = WeightedIndex::new(weights.to_vec()).unwrap();
-            assert_eq!(*distr.cumulative_weights.last().unwrap(), total_weight);
-
-            distr.assign_new_weights(weights).unwrap();
-            assert_eq!(*distr.cumulative_weights.last().unwrap(), total_weight);
-
-            let new_total_weight = new_weights.iter().sum::<u32>();
-            let new_distr = WeightedIndex::new(new_weights.to_vec()).unwrap();
-            distr.assign_new_weights(new_weights).unwrap();
-            assert_eq!(distr.cumulative_weights, new_distr.cumulative_weights);
-            assert_eq!(*distr.cumulative_weights.last().unwrap(), new_total_weight);
-        }
-    }
-
-    #[test]
-    fn assigning_error_states() {
-        {
-            let mut distr = WeightedIndex::new(&[1.0f64, 2.0, 3.0, 0.0][..]).unwrap();
-            let res = distr.assign_new_weights(&[1.0f64, 2.0, ::core::f64::NAN, 0.0][..]);
-            assert_eq!(res, Err(WeightedError::InvalidWeight));
-        }
-        {
-            let mut distr = WeightedIndex::new(&[1u32, 2, 3, 0][..]).unwrap();
-            let res = distr.assign_new_weights(&[0u32, 0, 0, 0][..]);
-            assert_eq!(res, Err(WeightedError::AllWeightsZero));
         }
     }
 
