@@ -83,6 +83,7 @@ pub use reseeding::ReseedingRng;
 pub mod mock; // Public so we don't export `StepRng` directly, making it a bit
               // more clear it is intended for testing.
 
+mod cached;
 #[cfg(feature = "small_rng")]
 mod small;
 #[cfg(all(
@@ -97,6 +98,8 @@ mod xoshiro256plusplus;
 mod std;
 #[cfg(feature = "thread_rng")]
 pub(crate) mod thread;
+
+pub use cached::CachedOsRng;
 
 #[cfg(feature = "small_rng")]
 pub use self::small::SmallRng;
